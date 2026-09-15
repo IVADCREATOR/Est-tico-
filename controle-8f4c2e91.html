@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<title>Painel — Sorasaki</title>
+<meta name="theme-color" content="#0c0b10">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="preload" href="/fonts/bricolage-grotesque.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/style.css?v=20260914b">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/" aria-label="Sorasaki, voltar ao site"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.1 7.4 7.4 2.1-7.4 2.1L12 21.5l-2.1-7.4L2.5 12l7.4-2.1z" fill="currentColor"/></svg></span><span class="brand-name">SORASAKI</span></a>
+    <nav class="site-nav" aria-label="Atalhos"><a href="/grupos">Grupos</a><a href="/noticias">Notícias</a><a href="/catalogo">Catálogo</a></nav>
+    <div class="topbar-actions">
+      <a class="btn btn-sm btn-ghost" href="/">Voltar ao site</a>
+      <button class="sora-login-trigger" type="button" aria-label="Entrar"><span class="login-avatar" aria-hidden="true"></span><span class="login-trigger-label">Entrar</span></button>
+    </div>
+  </div>
+</header>
+
+<main id="conteudo">
+  <div class="page-head-row">
+    <div class="page-head"><span class="eyebrow">Painel</span><h1>Central administrativa</h1></div>
+    <span class="updated-at" id="adminWho"></span>
+  </div>
+
+  <div id="adminMessage" class="section-sm"><div class="empty-state"><strong>Verificando acesso…</strong></div></div>
+  <div id="adminMfaTip" class="inline-alert section-sm" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.2-7 9.5-4-1.3-7-5-7-9.5V6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg><div><strong>Ative a verificação em duas etapas.</strong>Contas da equipe têm acesso a dados de todos os usuários. Com o código do app autenticador, uma senha vazada não basta para entrar no painel.<div style="margin-top:10px"><button class="btn btn-sm" type="button" id="adminMfaOpen">Ativar no meu perfil</button></div></div></div>
+
+  <section id="adminContent" class="admin-shell" hidden>
+    <nav class="admin-side" aria-label="Seções do painel">
+      <div class="admin-group">Visão geral</div>
+      <button class="active" type="button" data-tab="dashboard">Resumo</button>
+      <button type="button" data-tab="stats">Estatísticas</button>
+      <div class="admin-group">Comunidade</div>
+      <button type="button" data-tab="groups">Divulgações <span class="count" data-count="groups" hidden></span></button>
+      <button type="button" data-tab="reviews">Avaliações <span class="count" data-count="reviews" hidden></span></button>
+      <button type="button" data-tab="reports">Relatos <span class="count" data-count="reports" hidden></span></button>
+      <button type="button" data-tab="feedback">Feedback e bugs <span class="count" data-count="feedback" hidden></span></button>
+      <button type="button" data-tab="users">Usuários</button>
+      <button type="button" data-tab="signups">Cadastros</button>
+      <div class="admin-group">Conteúdo</div>
+      <button type="button" data-tab="official">Grupos oficiais</button>
+      <button type="button" data-tab="news">Notícias</button>
+      <button type="button" data-tab="notices">Avisos</button>
+      <div class="admin-group">Comercial</div>
+      <button type="button" data-tab="products">Produtos e preços</button>
+      <button type="button" data-tab="plans">Planos de destaque</button>
+      <button type="button" data-tab="coupons">Cupons</button>
+      <div class="admin-group">Bots individuais</div>
+      <button type="button" data-tab="bots">Bots e números <span class="count" data-count="bots" hidden></span></button>
+      <button type="button" data-tab="botgroups">Grupos dos bots</button>
+      <button type="button" data-tab="botplans">Planos de bot</button>
+      <button type="button" data-tab="botworkers">Workers e ajustes</button>
+      <button type="button" data-tab="botaudit">Auditoria de bots</button>
+      <div class="admin-group">Sistema</div>
+      <button type="button" data-tab="activity">Histórico</button>
+      <button type="button" data-tab="settings">Configurações</button>
+    </nav>
+
+    <div class="admin-main">
+      <!-- Resumo -->
+      <section class="admin-view active" data-view="dashboard">
+        <div id="kpis" class="admin-kpis"></div>
+        <div class="admin-two">
+          <div class="panel"><h2 class="panel-title">Para revisar</h2><div id="dashQueue" class="admin-card-list"></div></div>
+          <div class="panel"><h2 class="panel-title">Atividade recente</h2><div id="dashActivity" class="admin-card-list"></div></div>
+        </div>
+      </section>
+
+      <!-- Cadastros (contexto de criação de conta) -->
+      <section class="admin-view" data-view="signups">
+        <div class="panel">
+          <div class="section-heading"><div><h2>Cadastros recentes</h2></div><span>IP e localização aproximada no momento do cadastro. Dado pessoal: use só para prevenir fraude e abuso.</span></div>
+          <div id="signupsList"></div>
+        </div>
+      </section>
+
+      <!-- Estatísticas -->
+      <section class="admin-view" data-view="stats">
+        <div class="panel"><div class="section-heading"><div><h2>Estatísticas</h2></div><button class="btn btn-sm" type="button" data-reload="stats">Atualizar</button></div><div id="statsContent"></div></div>
+      </section>
+
+      <!-- Divulgações -->
+      <section class="admin-view" data-view="groups">
+        <div class="panel">
+          <div class="section-heading"><div><h2>Divulgações</h2></div><span>Aprovadas aparecem na vitrine. Recusadas mostram a nota ao dono.</span></div>
+          <div class="admin-toolbar"><input id="groupSearch" type="search" placeholder="Pesquisar nome, descrição ou plataforma"><select id="groupStatus"><option value="pending">Pendentes</option><option value="approved">Publicadas</option><option value="rejected">Recusadas</option><option value="removed">Removidas</option><option value="all">Todas</option></select></div>
+          <div id="groupsList" class="admin-card-list"></div>
+        </div>
+      </section>
+
+      <!-- Avaliações -->
+      <section class="admin-view" data-view="reviews">
+        <div class="panel">
+          <div class="section-heading"><div><h2>Avaliações</h2></div><span>Só avaliações aprovadas entram na nota pública do grupo.</span></div>
+          <div class="admin-toolbar"><select id="reviewStatus"><option value="pending">Pendentes</option><option value="visible">Aprovadas</option><option value="hidden">Ocultas</option><option value="all">Todas</option></select></div>
+          <div id="reviewsList" class="admin-card-list"></div>
+        </div>
+      </section>
+
+      <!-- Relatos -->
+      <section class="admin-view" data-view="reports">
+        <div class="panel">
+          <div class="section-heading"><div><h2>Relatos de grupos</h2></div></div>
+          <div class="admin-toolbar"><select id="reportStatus"><option value="open">Abertos</option><option value="reviewing">Em análise</option><option value="resolved">Resolvidos</option><option value="dismissed">Descartados</option><option value="all">Todos</option></select></div>
+          <div id="reportsList" class="admin-card-list"></div>
+        </div>
+      </section>
+
+      <!-- Feedback -->
+      <section class="admin-view" data-view="feedback">
+        <div class="panel">
+          <div class="section-heading"><div><h2>Feedback e bugs</h2></div></div>
+          <div class="admin-toolbar"><select id="feedbackKind"><option value="bugs">Relatos de bug</option><option value="suggestion">Sugestões</option><option value="rating">Avaliações do Sorasaki</option></select></div>
+          <div id="feedbackList" class="admin-card-list"></div>
+        </div>
+      </section>
+
+      <!-- Usuários -->
+      <section class="admin-view" data-view="users">
+        <div class="panel">
+          <div class="section-heading"><div><h2>Usuários</h2></div></div>
+          <form class="admin-toolbar" id="usersSearchForm"><input id="userSearch" type="search" placeholder="Nome, usuário, e-mail ou ID"><select id="userStatus"><option value="all">Todos</option><option value="active">Ativos</option><option value="suspended">Suspensos</option></select><button class="btn btn-sm" type="submit" id="loadUsers">Pesquisar</button></form>
+          <div id="usersList"></div>
+        </div>
+      </section>
+
+      <!-- Grupos oficiais -->
+      <section class="admin-view" data-view="official">
+        <div class="panel">
+          <div class="section-heading"><div><h2 id="officialFormTitle">Novo grupo oficial</h2></div></div>
+          <form id="officialForm" class="admin-form" novalidate>
+            <input id="officialId" type="hidden">
+            <div class="admin-form-grid">
+              <label>Nome<input id="officialName" required maxlength="100"></label>
+              <label>Categoria<select id="officialCategory"></select></label>
+              <label class="wide">Link de convite<input id="officialLink" required type="url" inputmode="url" autocapitalize="none"></label>
+              <label>Imagem ou logo <span class="field-optional">opcional</span><input id="officialImage" type="url" inputmode="url" autocapitalize="none"></label>
+              <label>Ordem de exibição<input id="officialOrder" type="number" value="0"></label>
+              <label class="wide">Frase de destaque <span class="field-optional">opcional</span><input id="officialHighlight" maxlength="160"></label>
+              <label class="wide">Descrição<textarea id="officialDescription" required maxlength="800"></textarea></label>
+            </div>
+            <div class="admin-actions"><button class="btn btn-primary" type="submit" id="officialSave">Salvar grupo oficial</button><button class="btn" type="button" id="officialDetect">Buscar foto pelo link</button><button class="btn btn-ghost" type="button" id="officialClear">Limpar</button></div>
+            <div id="officialResult" class="auth-result" aria-live="polite"></div>
+          </form>
+        </div>
+        <div class="panel"><h2 class="panel-title">Cadastrados</h2><div id="officialList" class="admin-card-list"></div></div>
+      </section>
+
+      <!-- Notícias -->
+      <section class="admin-view" data-view="news">
+        <div class="panel">
+          <div class="section-heading"><div><h2 id="newsFormTitle">Nova notícia</h2></div></div>
+          <form id="newsForm" class="admin-form" novalidate>
+            <input id="newsId" type="hidden">
+            <div class="admin-form-grid">
+              <label class="wide">Título<input id="newsTitle" required maxlength="160"></label>
+              <label>Categoria<input id="newsCategory" value="Novidade" maxlength="50"></label>
+              <label>Imagem <span class="field-optional">opcional</span><input id="newsImage" type="url" inputmode="url" autocapitalize="none"></label>
+              <label>Situação<select id="newsStatus"><option value="draft">Rascunho</option><option value="published">Publicada</option></select></label>
+              <label>Publicar em <span class="field-optional">vazio = agora</span><input id="newsPublishAt" type="datetime-local"></label>
+              <label class="wide">Resumo <span class="field-optional">aparece na lista</span><textarea id="newsSummary" maxlength="400" style="min-height:80px"></textarea></label>
+              <label class="wide">Conteúdo<textarea id="newsContent" required maxlength="12000"></textarea></label>
+            </div>
+            <div class="admin-actions"><button class="btn btn-primary" type="submit" id="newsSave">Salvar notícia</button><button class="btn btn-ghost" type="button" id="newsClear">Limpar</button></div>
+            <div id="newsResult" class="auth-result" aria-live="polite"></div>
+          </form>
+        </div>
+        <div class="panel"><h2 class="panel-title">Publicações</h2><div id="newsList" class="admin-card-list"></div></div>
+      </section>
+
+      <!-- Avisos -->
+      <section class="admin-view" data-view="notices">
+        <div class="panel">
+          <div class="section-heading"><div><h2 id="noticeFormTitle">Novo aviso</h2></div><span>Avisos ativos aparecem no topo da página inicial e em Notícias.</span></div>
+          <form id="noticeForm" class="admin-form" novalidate>
+            <input id="noticeId" type="hidden">
+            <div class="admin-form-grid">
+              <label>Título<input id="noticeTitle" required maxlength="120"></label>
+              <label>Tipo<select id="noticeType"><option value="info">Informativo</option><option value="success">Boa notícia</option><option value="warning">Atenção</option><option value="danger">Urgente</option></select></label>
+              <label class="wide">Mensagem<textarea id="noticeMessage" required maxlength="1000"></textarea></label>
+              <label>Início <span class="field-optional">vazio = agora</span><input id="noticeStart" type="datetime-local"></label>
+              <label>Término <span class="field-optional">opcional</span><input id="noticeEnd" type="datetime-local"></label>
+              <label>Destaque<select id="noticeHighlight"><option value="false">Normal</option><option value="true">Aparece primeiro</option></select></label>
+              <label>Situação<select id="noticeActive"><option value="true">Ativo</option><option value="false">Inativo</option></select></label>
+            </div>
+            <div class="admin-actions"><button class="btn btn-primary" type="submit" id="noticeSave">Salvar aviso</button><button class="btn btn-ghost" type="button" id="noticeClear">Limpar</button></div>
+            <div id="noticeResult" class="auth-result" aria-live="polite"></div>
+          </form>
+        </div>
+        <div class="panel"><h2 class="panel-title">Avisos cadastrados</h2><div id="noticesList" class="admin-card-list"></div></div>
+      </section>
+
+      <!-- Produtos -->
+      <section class="admin-view" data-view="products">
+        <div class="panel">
+          <div class="section-heading"><div><h2 id="productFormTitle">Novo produto</h2></div><span>Produtos ativos aparecem no Catálogo e na página inicial.</span></div>
+          <form id="productForm" class="admin-form" novalidate>
+            <input id="productId" type="hidden">
+            <div class="admin-form-grid">
+              <label>Nome<input id="productName" required maxlength="120"></label>
+              <label>Endereço (slug) <span class="field-optional">gerado pelo nome</span><input id="productSlug" maxlength="120" placeholder="nome-do-produto" autocapitalize="none"></label>
+              <label>Preço (R$)<input id="productPrice" required type="number" inputmode="decimal" min="0" step=".01"></label>
+              <label>Preço promocional <span class="field-optional">opcional</span><input id="productPromo" type="number" inputmode="decimal" min="0" step=".01"></label>
+              <label>Preço anterior <span class="field-optional">aparece riscado</span><input id="productPrevious" type="number" inputmode="decimal" min="0" step=".01"></label>
+              <label>Categoria<input id="productCategory" maxlength="60" placeholder="Ex.: Contas, Serviços"></label>
+              <label>Imagem <span class="field-optional">opcional</span><input id="productImage" type="url" inputmode="url" maxlength="1000" placeholder="https://…" autocapitalize="none"></label>
+              <label>Ordem<input id="productOrder" type="number" value="0"></label>
+              <label>Situação<select id="productActive"><option value="true">Ativo</option><option value="false">Inativo</option></select></label>
+              <label class="wide">Descrição<textarea id="productDesc" maxlength="1000"></textarea></label>
+            </div>
+            <div class="admin-actions"><button class="btn btn-primary" type="submit" id="productSave">Salvar produto</button><button class="btn btn-ghost" type="button" id="productClear">Limpar</button></div>
+            <div id="productResult" class="auth-result" aria-live="polite"></div>
+          </form>
+        </div>
+        <div class="panel"><h2 class="panel-title">Catálogo</h2><div id="productsList" class="admin-card-list"></div></div>
+      </section>
+
+      <!-- Planos -->
+      <section class="admin-view" data-view="plans">
+        <div class="panel">
+          <div class="section-heading"><div><h2 id="planFormTitle">Novo plano</h2></div><span>Planos ativos e com preço aparecem na página Grupos.</span></div>
+          <form id="planForm" class="admin-form" novalidate>
+            <input id="planId" type="hidden">
+            <div class="admin-form-grid">
+              <label>Nome<input id="planName" required maxlength="60"></label>
+              <label>Preço (R$)<input id="planPrice" required type="number" inputmode="decimal" min="0" step=".01"></label>
+              <label>Duração (dias)<input id="planDays" required type="number" inputmode="numeric" min="1"></label>
+              <label>Situação<select id="planActive"><option value="true">Ativo</option><option value="false">Inativo</option></select></label>
+              <label class="wide">Descrição<textarea id="planDesc" required maxlength="300"></textarea></label>
+            </div>
+            <div class="admin-actions"><button class="btn btn-primary" type="submit" id="planSave">Salvar plano</button><button class="btn btn-ghost" type="button" id="planClear">Limpar</button></div>
+            <div id="planResult" class="auth-result" aria-live="polite"></div>
+          </form>
+        </div>
+        <div class="panel"><h2 class="panel-title">Planos</h2><div id="plansList" class="admin-card-list"></div></div>
+      </section>
+
+      <!-- Cupons -->
+      <section class="admin-view" data-view="coupons">
+        <div class="panel">
+          <div class="section-heading"><div><h2 id="couponFormTitle">Novo cupom</h2></div></div>
+          <form id="couponForm" class="admin-form" novalidate>
+            <input id="couponId" type="hidden">
+            <div class="admin-form-grid">
+              <label>Código<input id="couponCode" required maxlength="40" placeholder="SORASAKI10" autocapitalize="characters"></label>
+              <label>Tipo<select id="couponType"><option value="percent">Percentual (%)</option><option value="fixed">Valor fixo (R$)</option></select></label>
+              <label>Desconto<input id="couponValue" required type="number" inputmode="decimal" min=".01" step=".01"></label>
+              <label>Plano <span class="field-optional">opcional</span><select id="couponPlan"><option value="">Todos os planos</option></select></label>
+              <label>Máximo de usos <span class="field-optional">vazio = sem limite</span><input id="couponMax" type="number" inputmode="numeric" min="1"></label>
+              <label>Usos por pessoa<input id="couponPerUser" type="number" inputmode="numeric" min="1" value="1"></label>
+              <label>Início <span class="field-optional">vazio = agora</span><input id="couponStart" type="datetime-local"></label>
+              <label>Validade <span class="field-optional">opcional</span><input id="couponEnd" type="datetime-local"></label>
+              <label>Situação<select id="couponActive"><option value="true">Ativo</option><option value="false">Inativo</option></select></label>
+            </div>
+            <div class="admin-actions"><button class="btn btn-primary" type="submit" id="couponSave">Salvar cupom</button><button class="btn" type="button" id="generateCoupon">Gerar código</button><button class="btn btn-ghost" type="button" id="couponClear">Limpar</button></div>
+            <div id="couponResult" class="auth-result" aria-live="polite"></div>
+          </form>
+        </div>
+        <div class="panel"><h2 class="panel-title">Cupons</h2><div id="couponsList" class="admin-card-list"></div></div>
+      </section>
+
+      <!-- Histórico -->
+      <section class="admin-view" data-view="activity">
+        <div class="panel"><div class="section-heading"><div><h2>Histórico administrativo</h2></div><button class="btn btn-sm" type="button" data-reload="activity">Atualizar</button></div><div id="activityList" class="admin-card-list"></div></div>
+      </section>
+
+      <!-- Configurações -->
+      <section class="admin-view" data-view="settings">
+        <div class="panel">
+          <div class="section-heading"><div><h2>Configurações gerais</h2></div></div>
+          <form id="settingsForm" class="admin-form" novalidate>
+            <div class="settings-list">
+              <div class="setting-row">
+                <div><strong>Site em manutenção</strong><p id="maintenanceStateText">Carregando…</p></div>
+                <label class="switch"><input type="checkbox" id="settingMaintenance" aria-label="Colocar o site em manutenção"><span></span></label>
+              </div>
+              <div class="setting-row">
+                <div><strong>Aceitar novas divulgações</strong><p>Quando desligado, ninguém consegue enviar grupos novos — o bloqueio vale também no banco.</p></div>
+                <label class="switch"><input type="checkbox" id="settingSubmissions" aria-label="Aceitar novas divulgações"><span></span></label>
+              </div>
+            </div>
+            <div class="admin-form-grid">
+              <label>Máximo de divulgações por conta em 24h<input id="settingLimit" type="number" inputmode="numeric" min="1" max="50"></label>
+              <label>Início da manutenção <span class="field-optional">vazio = imediato</span><input id="settingStartAt" type="datetime-local"></label>
+              <label>Previsão de retorno <span class="field-optional">opcional</span><input id="settingReturnAt" type="datetime-local"></label>
+              <label>Título da manutenção<input id="settingMaintenanceTitle" maxlength="120" placeholder="Estamos em manutenção"></label>
+              <label class="wide">Mensagem da manutenção<textarea id="settingMaintenanceMessage" maxlength="1000" placeholder="O site está passando por algumas melhorias…"></textarea></label>
+            </div>
+            <p class="field-hint">A imagem da tela de manutenção é fixa do projeto. O painel continua acessível durante a manutenção.</p>
+            <div class="admin-actions"><button class="btn btn-primary" type="submit" id="settingsSave">Salvar configurações</button><button class="btn" type="button" id="maintenancePreviewBtn">Ver prévia da manutenção</button></div>
+            <div id="settingsResult" class="auth-result" aria-live="polite"></div>
+          </form>
+          <div id="maintenancePreviewBox" class="maintenance-admin-preview" hidden></div>
+        </div>
+      </section>
+
+      <!-- Bots individuais (js/admin-bots.js) -->
+      <section class="admin-view" data-view="bots">
+        <div id="botKpis" class="admin-kpis"></div>
+        <div class="panel">
+          <div class="section-heading"><div><h2>Bots e números</h2></div><button class="btn btn-sm" type="button" data-reload="bots">Atualizar</button></div>
+          <form class="admin-toolbar" id="botSearchForm"><input id="botSearch" type="search" placeholder="Nome, dono, e-mail, número mascarado ou ID"><select id="botFilter"><option value="all">Todos</option><option value="pending">Pedidos pendentes</option><option value="online">Online</option><option value="offline">Offline</option><option value="worker_unavailable">Worker indisponível</option><option value="subscription_expired">Assinatura vencida</option><option value="suspended">Suspensos</option><option value="blocked">Bloqueados</option><option value="revoked">Revogados</option></select><button class="btn btn-sm" type="submit">Filtrar</button></form>
+          <div id="botList" class="admin-card-list"></div>
+        </div>
+        <div class="panel" id="botDetailPanel" hidden><div id="botDetail"></div></div>
+      </section>
+      <section class="admin-view" data-view="botgroups">
+        <div class="panel">
+          <div class="section-heading"><div><h2>Grupos dos bots</h2></div><span>Só aparecem grupos em que algum bot está e que ele informou. Não há acesso a grupos onde o bot não participa.</span></div>
+          <div class="admin-toolbar"><select id="botGroupsInstance"><option value="">Todos os bots (lista)</option></select><button class="btn btn-sm" type="button" data-reload="botgroups">Atualizar</button></div>
+          <div id="botGroupsList" class="admin-card-list"></div>
+        </div>
+      </section>
+      <section class="admin-view" data-view="botplans">
+        <div class="panel"><div class="section-heading"><div><h2 id="botPlanTitle">Novo plano</h2></div></div><div id="botPlanFormBox"></div></div>
+        <div class="panel"><h2 class="panel-title">Planos cadastrados</h2><div id="botPlansList" class="admin-card-list"></div></div>
+      </section>
+      <section class="admin-view" data-view="botworkers">
+        <div class="panel"><div class="section-heading"><div><h2>Plataforma de bots</h2></div></div><div id="botSettingsBox"></div></div>
+        <div class="panel"><div class="section-heading"><div><h2>Workers</h2></div><button class="btn btn-sm" type="button" data-reload="botworkers">Atualizar</button></div><div id="botWorkersList" class="admin-card-list"></div></div>
+        <div class="panel"><div class="section-heading"><div><h2 id="botWorkerTitle">Novo worker</h2></div></div><div id="botWorkerFormBox"></div></div>
+      </section>
+      <section class="admin-view" data-view="botaudit">
+        <div class="panel"><div class="section-heading"><div><h2>Auditoria de bots</h2></div><button class="btn btn-sm" type="button" data-reload="botaudit">Atualizar</button></div><div id="botAuditList"></div></div>
+      </section>
+    </div>
+  </section>
+</main>
+
+<script src="/config.js"></script>
+<script src="/vendor/supabase-js-2.116.0.js"></script>
+<script src="/app.js?v=20260912c"></script>
+<script src="/js/controle-8f4c2e91.js?v=20260914b"></script>
+<script src="/js/admin-bots.js?v=20260914b"></script>
+</body>
+</html>

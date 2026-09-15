@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Recursos do bot — Sorasaki</title>
+<meta name="description" content="O que o bot Sorasaki faz no seu grupo de WhatsApp: moderação, menus para administradores e membros e divulgação automática.">
+<link rel="canonical" href="https://www.sorasakiplatform.store/recursos">
+<meta name="theme-color" content="#0c0b10">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sorasaki">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:url" content="https://www.sorasakiplatform.store/recursos">
+<meta property="og:title" content="O que o Sorasaki faz no seu grupo">
+<meta property="og:description" content="Moderação, menus para administradores e membros e divulgação automática.">
+<meta property="og:image" content="https://www.sorasakiplatform.store/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.sorasakiplatform.store/og-image.jpg">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preload" href="/fonts/bricolage-grotesque.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/style.css?v=20260912c">
+</head>
+<body data-live="true">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/" aria-label="Sorasaki, página inicial"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.1 7.4 7.4 2.1-7.4 2.1L12 21.5l-2.1-7.4L2.5 12l7.4-2.1z" fill="currentColor"/></svg></span><span class="brand-name">SORASAKI</span></a>
+    <nav class="site-nav" aria-label="Principal"><a href="/grupos">Grupos</a><a href="/catalogo">Catálogo</a><a href="/noticias">Notícias</a><a href="/status">Status</a><a href="/estatisticas">Estatísticas</a><a href="/suporte">Suporte</a></nav>
+    <div class="topbar-actions">
+      <span class="bot-status" data-bot-status><span class="status-dot"></span><span data-bot-status-text>Verificando o bot</span></span>
+      <button class="sora-login-trigger" type="button" aria-label="Entrar ou criar conta"><span class="login-avatar" aria-hidden="true"></span><span class="login-trigger-label">Entrar</span></button>
+      <button class="menu-trigger" type="button" aria-label="Abrir menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="conteudo">
+  <div class="page-head">
+    <span class="eyebrow">Recursos</span>
+    <h1>O que o bot faz no seu grupo.</h1>
+    <p class="lead">Ferramentas para quem administra: tirar quem atrapalha, silenciar quando precisa, limpar o chat e manter a divulgação rodando sozinha.</p>
+  </div>
+
+  <section class="section feature-list">
+    <div><h3>Moderação</h3><p><b>!ban</b> remove quem quebra as regras, <b>!mute</b> e <b>!desmute</b> controlam quem pode falar e <b>!clean</b> ajuda a limpar o chat.</p></div>
+    <div><h3>Menus por perfil</h3><p>Administradores veem os comandos de gestão em <b>!menuadmin</b>. Membros encontram o que podem usar em <b>!menumember</b>.</p></div>
+    <div><h3>Divulgação automática</h3><p>Mensagens programadas enviadas em intervalos definidos. Os comandos automáticos ficam reunidos em <b>!menuauto</b>, e a página Status mostra se a divulgação está ativa.</p></div>
+  </section>
+
+  <section class="section two-col">
+    <div class="panel">
+      <h2 class="panel-title">Mais usados agora</h2>
+      <p class="muted" style="margin:-8px 0 16px">Ranking real de comandos executados nos grupos.</p>
+      <div class="table-wrap"><table><thead><tr><th>Comando</th><th class="num">Usos</th></tr></thead><tbody id="rankingComandos"><tr><td colspan="2" class="empty">Carregando…</td></tr></tbody></table></div>
+    </div>
+    <div class="panel">
+      <h2 class="panel-title">Acompanhe de perto</h2>
+      <ul class="rule-list">
+        <li><span><a class="text-link" href="/status">Status</a> — se o bot está online e o ping de agora.</span></li>
+        <li><span><a class="text-link" href="/uptime">Disponibilidade</a> — quedas, reconexões e tempo fora do ar.</span></li>
+        <li><span><a class="text-link" href="/erros">Ocorrências</a> — falhas registradas e comandos com problema.</span></li>
+        <li><span><a class="text-link" href="/estatisticas">Estatísticas</a> — mensagens, comandos e horários de pico.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="section cta-band">
+    <div><h2>Quer o Sorasaki no seu grupo?</h2><p>Fale com a equipe para saber como adicionar o bot e quais comandos combinam com a sua comunidade.</p></div>
+    <a class="btn btn-primary" href="/suporte">Falar com a equipe <span aria-hidden="true">→</span></a>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><a class="brand" href="/"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.1 7.4 7.4 2.1-7.4 2.1L12 21.5l-2.1-7.4L2.5 12l7.4-2.1z" fill="currentColor"/></svg></span><span class="brand-name">SORASAKI</span></a><p>Um bot que protege grupos de WhatsApp e uma vitrine para comunidades. Trocas, vendas e serviços.</p></div>
+    <div class="footer-col"><h4>Explorar</h4><a href="/grupos">Grupos</a><a href="/catalogo">Catálogo</a><a href="/noticias">Notícias</a><a href="/sobre">Sobre</a></div>
+    <div class="footer-col"><h4>Bot e ajuda</h4><a href="/status">Status</a><a href="/estatisticas">Estatísticas</a><a href="/suporte">Suporte</a><a href="/feedback">Avaliações e bugs</a><a href="/termos">Termos de Uso</a><a href="/privacidade">Privacidade</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2026 Sorasaki</span><span>Trocas · Vendas · Serviços</span></div>
+</footer>
+
+<script src="/config.js"></script>
+<script src="/vendor/supabase-js-2.116.0.js"></script>
+<script src="/app.js?v=20260912c"></script>
+<script src="/js/recursos.js?v=20260912c"></script>
+</body>
+</html>

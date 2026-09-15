@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Avaliações e bugs — Sorasaki</title>
+<meta name="description" content="Avalie o Sorasaki, sugira uma função nova ou relate um problema no bot ou no site.">
+<link rel="canonical" href="https://www.sorasakiplatform.store/feedback">
+<meta name="theme-color" content="#0c0b10">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sorasaki">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:url" content="https://www.sorasakiplatform.store/feedback">
+<meta property="og:title" content="O que você acha do Sorasaki?">
+<meta property="og:description" content="Avalie, sugira uma função ou relate um problema.">
+<meta property="og:image" content="https://www.sorasakiplatform.store/og-image.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.sorasakiplatform.store/og-image.jpg">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preload" href="/fonts/bricolage-grotesque.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/style.css?v=20260912c">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/" aria-label="Sorasaki, página inicial"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.1 7.4 7.4 2.1-7.4 2.1L12 21.5l-2.1-7.4L2.5 12l7.4-2.1z" fill="currentColor"/></svg></span><span class="brand-name">SORASAKI</span></a>
+    <nav class="site-nav" aria-label="Principal"><a href="/grupos">Grupos</a><a href="/catalogo">Catálogo</a><a href="/noticias">Notícias</a><a href="/status">Status</a><a href="/estatisticas">Estatísticas</a><a href="/suporte">Suporte</a></nav>
+    <div class="topbar-actions">
+      <span class="bot-status" data-bot-status><span class="status-dot"></span><span data-bot-status-text>Verificando o bot</span></span>
+      <button class="sora-login-trigger" type="button" aria-label="Entrar ou criar conta"><span class="login-avatar" aria-hidden="true"></span><span class="login-trigger-label">Entrar</span></button>
+      <button class="menu-trigger" type="button" aria-label="Abrir menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="conteudo">
+  <section class="split-hero">
+    <div class="page-head">
+      <span class="eyebrow">Avaliações e bugs</span>
+      <h1>O que você acha do Sorasaki?</h1>
+      <p class="lead">Avalie o bot, sugira uma função nova ou avise quando algo não funcionar como deveria. É daqui que saem as próximas melhorias.</p>
+    </div>
+    <div class="art"><img class="art-framed" src="/img/sorasaki-feedback.webp" alt="Sorasaki pensativa, com balões dizendo: me diz o que adicionar no site, relata bugs e avalia o bot" width="720" height="720" loading="lazy" draggable="false" style="width:min(100%,320px)"></div>
+  </section>
+
+  <div class="inline-alert section-sm" data-when-guest><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v5M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><div><strong>É preciso estar conectado para enviar.</strong>Assim evitamos spam e conseguimos responder você.<div style="margin-top:10px"><button class="btn btn-sm" type="button" data-login>Entrar ou criar conta</button></div></div></div>
+
+  <section class="feedback-grid section-sm" id="avaliacao">
+    <form class="panel feedback-card" id="ratingForm" novalidate>
+      <div><span class="eyebrow">Avaliação</span><h2 style="margin-top:10px">Como está sua experiência?</h2></div>
+      <div class="star-rating" role="radiogroup" aria-label="Nota de 1 a 5">
+        <button type="button" data-rating="1" role="radio" aria-checked="false" aria-label="1 estrela">★</button><button type="button" data-rating="2" role="radio" aria-checked="false" aria-label="2 estrelas">★</button><button type="button" data-rating="3" role="radio" aria-checked="false" aria-label="3 estrelas">★</button><button type="button" data-rating="4" role="radio" aria-checked="false" aria-label="4 estrelas">★</button><button type="button" data-rating="5" role="radio" aria-checked="false" aria-label="5 estrelas">★</button>
+      </div>
+      <span id="ratingText" class="rating-text">Escolha uma nota</span>
+      <label>Comentário <span class="optional">opcional</span><textarea id="ratingComment" rows="4" maxlength="1200" placeholder="O que você mais gostou ou mudaria?"></textarea></label>
+      <label>E-mail para retorno <span class="optional">opcional</span><input id="ratingEmail" type="email" inputmode="email" maxlength="160" placeholder="voce@exemplo.com"></label>
+      <div class="form-result" id="ratingResult" aria-live="polite"></div>
+      <div class="form-actions"><button class="btn btn-primary" id="sendRating" type="submit">Enviar avaliação</button></div>
+    </form>
+
+    <form class="panel feedback-card" id="suggestForm" novalidate>
+      <div><span class="eyebrow">Sugestão</span><h2 style="margin-top:10px">Tem uma ideia?</h2></div>
+      <p class="muted">Uma função nova, um comando, uma mudança no site — pode mandar.</p>
+      <label>Título<input id="suggestTitle" maxlength="120" placeholder="Ex.: comando para sortear membros"></label>
+      <label>Detalhes<textarea id="suggestMessage" rows="6" maxlength="1800" placeholder="Explique a ideia e como ela ajudaria"></textarea></label>
+      <div class="form-result" id="suggestResult" aria-live="polite"></div>
+      <div class="form-actions"><button class="btn btn-primary" id="sendSuggestion" type="submit">Enviar sugestão</button></div>
+    </form>
+  </section>
+
+  <form class="panel feedback-card section-sm" id="bug" novalidate>
+    <div><span class="eyebrow">Relatar bug</span><h2 style="margin-top:10px">Encontrou algo quebrado?</h2><p class="muted" style="margin-top:6px">Quanto mais detalhes, mais rápido dá para reproduzir e corrigir.</p></div>
+    <div class="form-grid">
+      <label class="full">Título<input id="bugTitle" maxlength="120" placeholder="Ex.: botão de grupos não abre no celular"></label>
+      <label>Onde aconteceu?<select id="bugPage"><option value="site">No site</option><option value="bot">No bot, dentro do grupo</option><option value="ponte">Nas estatísticas ou no status</option></select></label>
+      <label>Gravidade<select id="bugSeverity"><option value="baixa">Baixa — só incomoda</option><option value="media" selected>Média — atrapalha o uso</option><option value="alta">Alta — impede de usar</option><option value="critica">Crítica — afeta todo mundo</option></select></label>
+      <label class="full">O que aconteceu?<textarea id="bugMessage" rows="6" maxlength="3000" placeholder="O que você fez, o que esperava e o que aconteceu. Diga também a página e o aparelho (ex.: iPhone, Android, computador)."></textarea></label>
+      <label class="full">E-mail para retorno <span class="optional">opcional</span><input id="bugEmail" type="email" inputmode="email" maxlength="160" placeholder="voce@exemplo.com"></label>
+    </div>
+    <div class="form-result" id="bugResult" aria-live="polite"></div>
+    <div class="form-actions"><button class="btn btn-primary" id="sendBug" type="submit">Enviar relato</button></div>
+  </form>
+
+  <p class="muted section-sm">Seu e-mail é opcional e só é usado para responder este envio.</p>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><a class="brand" href="/"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.1 7.4 7.4 2.1-7.4 2.1L12 21.5l-2.1-7.4L2.5 12l7.4-2.1z" fill="currentColor"/></svg></span><span class="brand-name">SORASAKI</span></a><p>Um bot que protege grupos de WhatsApp e uma vitrine para comunidades. Trocas, vendas e serviços.</p></div>
+    <div class="footer-col"><h4>Explorar</h4><a href="/grupos">Grupos</a><a href="/catalogo">Catálogo</a><a href="/noticias">Notícias</a><a href="/sobre">Sobre</a></div>
+    <div class="footer-col"><h4>Bot e ajuda</h4><a href="/status">Status</a><a href="/estatisticas">Estatísticas</a><a href="/suporte">Suporte</a><a href="/feedback">Avaliações e bugs</a><a href="/termos">Termos de Uso</a><a href="/privacidade">Privacidade</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2026 Sorasaki</span><span>Trocas · Vendas · Serviços</span></div>
+</footer>
+
+<script src="/config.js"></script>
+<script src="/vendor/supabase-js-2.116.0.js"></script>
+<script src="/app.js?v=20260912c"></script>
+<script src="/js/feedback.js?v=20260912c"></script>
+</body>
+</html>
