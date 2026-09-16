@@ -61,6 +61,7 @@
       <button type="button" data-tab="botplans">Planos de bot</button>
       <button type="button" data-tab="botworkers">Workers e ajustes</button>
       <button type="button" data-tab="botaudit">Auditoria de bots</button>
+      <button type="button" data-tab="botpayments">Pagamentos pendentes <span class="count" data-count="botpayments" hidden></span></button>
       <div class="admin-group">Sistema</div>
       <button type="button" data-tab="activity">Histórico</button>
       <button type="button" data-tab="settings">Configurações</button>
@@ -332,6 +333,11 @@
       </section>
       <section class="admin-view" data-view="botaudit">
         <div class="panel"><div class="section-heading"><div><h2>Auditoria de bots</h2></div><button class="btn btn-sm" type="button" data-reload="botaudit">Atualizar</button></div><div id="botAuditList"></div></div>
+      </section>
+      <section class="admin-view" data-view="botpayments">
+        <div class="panel"><div class="section-heading"><div><h2>Pagamentos pendentes</h2></div>
+          <div><select id="botPaySel"><option value="pending">Pendentes</option><option value="approved">Aprovados</option><option value="rejected">Rejeitados</option><option value="canceled">Cancelados</option><option value="expired">Expirados</option><option value="refunded">Reembolsados</option></select>
+          <button class="btn btn-sm" type="button" data-reload="botpayments">Atualizar</button></div></div><div id="botPaymentsList"></div></div>
       </section>
     </div>
   </section>

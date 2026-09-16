@@ -121,6 +121,7 @@
         ${i.admin_state === "approved" ? '<button class="btn btn-sm" data-ad="suspend">Suspender</button>' : ""}
         ${i.admin_state !== "blocked" && i.admin_state !== "revoked" ? '<button class="btn btn-sm admin-danger" data-ad="block">Bloquear</button>' : ""}
         ${i.admin_state !== "revoked" ? '<button class="btn btn-sm admin-danger" data-ad="revoke" data-confirmar="Confirmar revogação">Revogar</button>' : ""}
+        ${["revoked", "blocked"].includes(i.admin_state) ? '<button class="btn btn-sm admin-danger" data-ad="delete" data-confirmar="Excluir definitivamente — apaga a sessão e não pode ser desfeito">Excluir bot</button>' : ""}
         ${i.phone_masked ? '<button class="btn btn-sm admin-danger" data-ad="disconnect" data-confirmar="Confirmar desconexão">Desconectar número</button>' : ""}
         ${i.management === "managed" ? '<button class="btn btn-sm" data-ad="start">Iniciar</button><button class="btn btn-sm" data-ad="stop">Parar</button><button class="btn btn-sm" data-ad="restart">Reiniciar</button>' : '<span class="admin-muted">Bot principal: o worker só observa (não inicia nem para).</span>'}
       </div>
@@ -347,6 +348,23 @@
     } else erroNaTela($("botSettingsBox"), rc);
   }
   window.SoraAdmin.registrarAba("botworkers", async () => { formWorker(); await carregarWorkers(); });
+
+  /* ================= Pagamentos ================= */
+  window.SoraAdmin.registrarAba("botpayments", async () => { await carregarPagamentos(); });
+  async function carregarPagamentos() {
+    const box = $("botPaymentsList");
+    box.innerHTML = '<div class="admin-empty">Carregando…</div>';
+    const status = $("botPaySel").value;
+    const r = await api("admin-payments", { query: `&status=${encodeURIComponent(status)}&limit=200` });
+    if (!r.ok) return erroNaTela(box, r);
+    const linhas = r.body.payments || [];
+    box.innerHTML = linhas.length ? `<div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Quando</th><th>Cliente</th><th>Plano</th><th>Valor</th><th>Método</th><th>Status</th><th>Ação</th></tr></thead><tbody>${linhas.map((p) => `<tr><td>${fmt(p.created_at)}</td><td>${esc(p.user)}</td><td>${esc(p.plan || "—")}</td><td>${dinheiro(p.amount)}${p.is_test ? ' <span class="chip-static">teste</span>' : ""}</td><td>${esc(p.gateway)}</td><td>${esc(p.status)}${p.gateway_status ? ` (${esc(p.gateway_status)})` : ""}</td><td>${p.status === "pending" && p.is_test && p.instance_id ? `<button class="btn btn-sm btn-primary" data-confirmarpg="${esc(p.id)}" data-instancia="${esc(p.instance_id)}">Confirmar</button>` : "—"}</td></tr>`).join("")}</tbody></table></div>` : '<div class="admin-empty">Nada por aqui.</div>';
+    $("botPaySel").onchange = carregarPagamentos;
+    box.querySelectorAll("[data-confirmarpg]").forEach((b) => {
+      b.onclick = () => executar(b, "admin-action", { action: "confirm-payment", instance_id: b.dataset.instancia, payment_id: b.dataset.confirmarpg }, carregarPagamentos);
+    });
+  }
+  document.querySelector('[data-reload="botpayments"]')?.addEventListener("click", carregarPagamentos);
 
   /* ================= Auditoria ================= */
   window.SoraAdmin.registrarAba("botaudit", async () => {

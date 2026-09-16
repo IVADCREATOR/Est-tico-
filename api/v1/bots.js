@@ -13,7 +13,7 @@ import {
   getUserFromAccessToken, bearerToken, requireAdmin, readJsonBody, sendJson, serverError, originAllowed, rateLimit
 } from '../_supabase.js';
 import {
-  enc, sel, one, ins, upd, rpc, tabelaAusente, violacaoUnica, refreshAssinaturas, lerConfig, BOT_SETTINGS_DEFAULTS,
+  enc, sel, one, ins, upd, del, rpc, tabelaAusente, violacaoUnica, refreshAssinaturas, lerConfig, BOT_SETTINGS_DEFAULTS,
   gatewayDisponivel, MSG_PAGAMENTO_TESTE, hmac, normalizarTelefone, mascararTelefone, limparTexto, nomeValido, uuidValido,
   contextoPedido, statusExibido, instanciaPublica, assinaturaPublica, pagamentoPublico, eventoPublico, planoPublico,
   CATALOGO, chaveValida, evento, auditar, gerarTokenWorker, atribuirWorker, criarTarefa, despacharConexao, localExecucao,
@@ -197,8 +197,8 @@ async function acaoAssinar({ user, cfg, body }) {
   if (!gw.available) throw new Erro(503, 'O pagamento ainda não está disponível. Tente mais tarde.');
   const sub = (await ins('bot_subscriptions', [{ user_id: user.id, instance_id: inst.id, plan_id: plano.id, status: 'pending_payment', price: plano.price, currency: plano.currency, period: plano.period,
     gateway: gw.gateway, last_change_by: user.id, last_change_by_type: 'user', last_change_reason: 'Assinatura solicitada.' }]))[0];
-  await novaCobranca(sub, plano, 'new', user.id, gw);
-  return { message: 'Assinatura criada. ' + MSG_PAGAMENTO_TESTE, subscription_id: sub.id };
+  const pay = await novaCobranca(sub, plano, 'new', user.id, gw);
+  return { message: pay.checkout_url ? 'Assinatura criada. Finalize o pagamento para ativar.' : 'Assinatura criada. ' + MSG_PAGAMENTO_TESTE, subscription_id: sub.id, checkout_url: pay.checkout_url || null };
 }
 
 async function planoPorCodigo(code) {
@@ -208,10 +208,45 @@ async function planoPorCodigo(code) {
   if (!p) throw new Erro(404, 'Este plano não está disponível.');
   return p;
 }
+async function criarCheckoutMercadoPago(pay, plano) {
+  const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
+  const origin = String(process.env.SITE_URL || 'https://www.sorasakiplatform.store').replace(/\/+$/, '');
+  const payload = {
+    items: [{
+      id: String(plano.id), title: `Sorasaki — Bot ${plano.name}`, description: plano.description || undefined,
+      quantity: 1, currency_id: plano.currency || 'BRL', unit_price: Number(pay.amount)
+    }],
+    external_reference: String(pay.id),
+    notification_url: `${origin}/api/mercadopago-webhook`,
+    back_urls: {
+      success: `${origin}/meu-bot?pagamento=sucesso`,
+      pending: `${origin}/meu-bot?pagamento=pendente`,
+      failure: `${origin}/meu-bot?pagamento=erro`
+    },
+    auto_return: 'approved',
+    metadata: { bot_payment_id: String(pay.id), kind: 'bot_subscription' }
+  };
+  const mp = await fetch('https://api.mercadopago.com/checkout/preferences', {
+    method: 'POST', headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+  });
+  const data = await mp.json().catch(() => ({}));
+  if (!mp.ok || !data.id || !data.init_point) {
+    console.error('bots.js: Mercado Pago recusou a preferência do bot', mp.status, data?.message || '');
+    return null;
+  }
+  return { checkout_url: data.init_point, gateway_payment_id: String(data.id) };
+}
+
 async function novaCobranca(sub, plano, kind, userId, gw) {
   await upd('bot_payments', `subscription_id=eq.${enc(sub.id)}&status=eq.pending`, { status: 'canceled' }, { returning: false });
   const pay = (await ins('bot_payments', [{ subscription_id: sub.id, user_id: userId, plan_id: plano.id, kind, amount: plano.price, currency: plano.currency,
     period_days: plano.duration_days, status: 'pending', is_test: gw.is_test, gateway: gw.gateway, expires_at: new Date(Date.now() + 7 * 86400000).toISOString() }]))[0];
+  if (gw.gateway === 'mercadopago') {
+    const checkout = await criarCheckoutMercadoPago(pay, plano);
+    if (checkout) await upd('bot_payments', `id=eq.${enc(pay.id)}`, checkout, { returning: false });
+    else await upd('bot_payments', `id=eq.${enc(pay.id)}`, { status: 'canceled' }, { returning: false });
+    Object.assign(pay, checkout || {});
+  }
   await evento({ instance_id: sub.instance_id, user_id: userId, subscription_id: sub.id, kind: 'payment', event: 'payment_created', actor_type: 'user', actor_id: userId,
     message: gw.is_test ? 'Cobrança de teste criada (aguardando confirmação do admin).' : 'Cobrança criada.' });
   return pay;
@@ -247,8 +282,8 @@ async function acaoRenovar({ user, cfg, body }) {
   const gw = gatewayDisponivel(cfg.bot_payment_mode);
   if (!gw.available) throw new Erro(503, 'O pagamento ainda não está disponível. Tente mais tarde.');
   const plano = await one('bot_plans', `id=eq.${sub.next_plan_id || sub.plan_id}&select=*`);
-  await novaCobranca(sub, plano, 'renewal', user.id, gw);
-  return { message: 'Renovação solicitada. ' + MSG_PAGAMENTO_TESTE };
+  const pay = await novaCobranca(sub, plano, 'renewal', user.id, gw);
+  return { message: pay.checkout_url ? 'Renovação criada. Finalize o pagamento para ativar.' : 'Renovação solicitada. ' + MSG_PAGAMENTO_TESTE, checkout_url: pay.checkout_url || null };
 }
 
 async function acaoCancelar({ user, body }) {
@@ -393,7 +428,7 @@ async function rotaAdmin(req, res, type) {
   if (!admin) throw new Erro(403, 'Você não tem permissão para esta ação. Se a verificação em duas etapas estiver ativa, confirme o código no painel.');
   if (!rateLimit(`bots-admin:${admin.id}`, 120, 60_000)) throw new Erro(429, 'Muitas ações seguidas. Aguarde um instante.');
   const leituras = { 'admin-list': adminLista, 'admin-instance': adminInstancia, 'admin-plans': adminPlanos, 'admin-workers': adminWorkers,
-    'admin-groups': adminGrupos, 'admin-audit': adminAuditoria };
+    'admin-groups': adminGrupos, 'admin-audit': adminAuditoria, 'admin-payments': adminPagamentos };
   const escritas = { 'admin-action': adminAcao, 'admin-plan-save': adminSalvarPlano, 'admin-worker-save': adminSalvarWorker,
     'admin-worker-token': adminTokenWorker, 'admin-group-setting': adminConfigGrupo, 'admin-create-main': adminCriarPrincipal };
   if (type === 'admin-settings') {
@@ -501,7 +536,7 @@ async function adminInstancia(req) {
 }
 
 /* ---------- ações administrativas (todas auditadas) ---------- */
-const ACOES_COM_MOTIVO = new Set(['suspend', 'block', 'revoke', 'disconnect', 'reject-connection']);
+const ACOES_COM_MOTIVO = new Set(['suspend', 'block', 'revoke', 'disconnect', 'reject-connection', 'delete']);
 async function adminAcao(req, admin, body) {
   const action = String(body.action || '');
   const reason = body.reason ? limparTexto(body.reason, 300) : null;
@@ -560,6 +595,16 @@ async function executarAcaoAdmin({ action, inst, body, reason, admin, ev }) {
       await tarefa(action === 'revoke' ? 'disconnect' : 'stop');
       await ev(estado, `${{ suspended: 'Suspenso', blocked: 'Bloqueado', revoked: 'Revogado' }[estado]} pela administração: ${reason}`, { severity: 'warning' });
       return { message: { suspended: 'Instância suspensa.', blocked: 'Instância bloqueada.', revoked: 'Instância revogada.' }[estado] };
+    }
+    case 'delete': {
+      if (!['revoked', 'blocked'].includes(inst.admin_state)) {
+        throw new Erro(409, 'Revogue ou bloqueie a instância antes de excluir — isso evita apagar por engano um bot ainda ativo.');
+      }
+      if (inst.worker_id) await tarefa('wipe');
+      const antes = { name: inst.name, owner_id: inst.owner_id, admin_state: inst.admin_state, created_at: inst.created_at };
+      await ev('deleted', `Bot excluído pela administração: ${reason}`, { severity: 'warning' });
+      await del('bot_instances', `id=eq.${inst.id}`);
+      return { message: 'Bot excluído.', audit: { deleted: antes } };
     }
     case 'disconnect': {
       await tarefa('disconnect');
@@ -737,6 +782,29 @@ async function adminAuditoria(req) {
   return { audit: rows.map((r) => ({ id: r.id, admin: perfis.get(r.admin_id)?.username || perfis.get(r.admin_id)?.email || r.admin_id, action: r.action,
     instance_id: r.target_instance_id || null, user_id: r.target_user_id || null, ip: r.ip || r.details?.ip || null,
     result: r.result || r.details?.result || null, reason: r.reason || r.details?.reason || null, details: r.details, created_at: r.created_at })) };
+}
+
+async function adminPagamentos(req) {
+  const status = String(req.query?.status || 'pending');
+  const limite = inteiro(req.query?.limit ?? 100, 1, 300, 100);
+  const filtroStatus = ['pending', 'approved', 'rejected', 'canceled', 'expired', 'refunded'].includes(status) ? status : 'pending';
+  const rows = await sel('bot_payments', `status=eq.${enc(filtroStatus)}&select=*&order=created_at.desc&limit=${limite}`);
+  const perfis = await perfisPorId(rows.map((r) => r.user_id));
+  const planos = await sel('bot_plans', 'select=id,code,name');
+  const nomePlano = new Map(planos.map((p) => [p.id, p.name]));
+  const subIds = [...new Set(rows.map((r) => r.subscription_id).filter(Boolean))];
+  const subs = subIds.length ? await sel('bot_subscriptions', `id=in.(${subIds.map(enc).join(',')})&select=id,instance_id`) : [];
+  const instanciaDaSub = new Map(subs.map((s) => [s.id, s.instance_id]));
+  return {
+    payments: rows.map((p) => ({
+      id: p.id, subscription_id: p.subscription_id, instance_id: instanciaDaSub.get(p.subscription_id) || null,
+      kind: p.kind, amount: Number(p.amount), currency: p.currency,
+      status: p.status, gateway: p.gateway, gateway_status: p.gateway_status || null, is_test: p.is_test,
+      plan: nomePlano.get(p.plan_id) || null,
+      user: perfis.get(p.user_id)?.username || perfis.get(p.user_id)?.email || p.user_id || 'desconhecido',
+      created_at: p.created_at, paid_at: p.paid_at, expires_at: p.expires_at
+    }))
+  };
 }
 
 async function adminSalvarConfig(req, admin, body) {

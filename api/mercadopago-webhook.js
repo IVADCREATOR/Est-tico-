@@ -1,5 +1,6 @@
 import crypto from 'node:crypto';
 import { supabaseRequest, newErrorId } from './_supabase.js';
+import { uuidValido, evento } from './_bots.js';
 
 function safeEqual(a, b) {
   const x = Buffer.from(String(a || ''));
@@ -45,6 +46,55 @@ function mapStatus(status) {
   return 'pending';
 }
 
+function periodoInicial(sub) {
+  const agora = new Date();
+  const inicioBase = sub.current_period_end && new Date(sub.current_period_end) > agora ? new Date(sub.current_period_end) : agora;
+  return { start: inicioBase, agora };
+}
+
+async function processarPagamentoDeBot(payment, payId, res) {
+  const pays = await supabaseRequest(`/rest/v1/bot_payments?id=eq.${payId}&select=id,subscription_id,user_id,plan_id,amount,status,period_days`);
+  const pay = pays?.[0];
+  if (!pay) return res.status(200).json({ ok: true });
+  if (pay.status !== 'pending') return res.status(200).json({ ok: true }); // já processado, evita duplicar
+
+  const amountMatches = Math.abs(Number(payment.transaction_amount || 0) - Number(pay.amount || 0)) < 0.01;
+  if (!amountMatches) return res.status(422).json({ ok: false });
+
+  const status = mapStatus(payment.status);
+  await supabaseRequest(`/rest/v1/bot_payments?id=eq.${payId}&status=eq.pending`, {
+    method: 'PATCH',
+    body: JSON.stringify({
+      status: status === 'paid' ? 'approved' : status,
+      gateway_payment_id: String(payment.id),
+      gateway_status: String(payment.status || ''),
+      paid_at: status === 'paid' ? new Date().toISOString() : null
+    })
+  });
+
+  if (status === 'paid' && pay.subscription_id) {
+    const subs = await supabaseRequest(`/rest/v1/bot_subscriptions?id=eq.${pay.subscription_id}&select=id,instance_id,user_id,current_period_end`);
+    const sub = subs?.[0];
+    if (sub) {
+      const { start, agora } = periodoInicial(sub);
+      const fim = new Date(start.getTime() + Number(pay.period_days || 30) * 86400000);
+      await supabaseRequest(`/rest/v1/bot_subscriptions?id=eq.${sub.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          status: 'active', started_at: agora.toISOString(), current_period_start: start.toISOString(), current_period_end: fim.toISOString(),
+          suspended_at: null, last_change_by_type: 'gateway', last_change_reason: 'Pagamento aprovado pelo Mercado Pago.'
+        })
+      });
+      await evento({
+        instance_id: sub.instance_id, user_id: sub.user_id, subscription_id: sub.id, kind: 'payment', event: 'payment_approved',
+        actor_type: 'gateway', actor_id: null, message: 'Pagamento aprovado — assinatura ativada.'
+      }).catch(() => {});
+    }
+  }
+
+  return res.status(200).json({ ok: true });
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST' && req.method !== 'GET') return res.status(405).end();
 
@@ -59,7 +109,11 @@ export default async function handler(req, res) {
 
   try {
     const payment = await getPayment(paymentId);
-    const orderId = Number(String(payment.external_reference || ''));
+    const ref = String(payment.external_reference || '');
+
+    if (uuidValido(ref)) return await processarPagamentoDeBot(payment, ref, res);
+
+    const orderId = Number(ref);
     if (!Number.isInteger(orderId) || orderId <= 0) return res.status(200).json({ ok: true });
 
     const orders = await supabaseRequest(`/rest/v1/orders?id=eq.${orderId}&select=id,user_id,group_id,plan_id,amount,status,coupon_id,discount_amount`);

@@ -73,7 +73,7 @@ export default async function handler(req, res) {
     const order = orders?.[0];
     if (!order) throw new Error('order creation failed');
 
-    const origin = String(process.env.SITE_URL || `https://${req.headers.host || ''}`).replace(/\/+$/, '');
+    const origin = String(process.env.SITE_URL || 'https://www.sorasakiplatform.store').replace(/\/+$/, '');
     const preferencePayload = {
       items: [{
         id: String(plan.id),

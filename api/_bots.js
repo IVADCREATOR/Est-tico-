@@ -33,6 +33,9 @@ export async function upd(table, filter, patch, { returning = true } = {}) {
     method: 'PATCH', headers: { Prefer: returning ? 'return=representation' : 'return=minimal' }, body: JSON.stringify(patch)
   });
 }
+export async function del(table, filter) {
+  return supabaseRequest(`/rest/v1/${table}?${filter}`, { method: 'DELETE', headers: { Prefer: 'return=minimal' } });
+}
 export async function rpc(fn, args = {}) {
   return supabaseRequest(`/rest/v1/rpc/${fn}`, { method: 'POST', body: JSON.stringify(args) });
 }
@@ -91,8 +94,11 @@ export function inteiro(v, min, max, fallback) {
  * ------------------------------------------------------------------- */
 export function gatewayDisponivel(modo) {
   if (modo === 'manual_test') return { available: true, gateway: 'manual', is_test: true };
-  // Mercado Pago / Stripe / Asaas: ligar só depois de confirmar a conta e as
-  // credenciais. Veja docs/PAGAMENTOS.md no pacote da plataforma.
+  if (modo === 'mercadopago') {
+    const pronto = Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN && process.env.MERCADOPAGO_WEBHOOK_SECRET);
+    return { available: pronto, gateway: 'mercadopago', is_test: false };
+  }
+  // Stripe / Asaas: ligar só depois de confirmar a conta e as credenciais.
   return { available: false, gateway: modo, is_test: false };
 }
 export const MSG_PAGAMENTO_TESTE = 'Modo de teste: nenhum valor é cobrado agora. Um administrador confirma o pagamento manualmente enquanto o meio de pagamento definitivo não é ativado.';
