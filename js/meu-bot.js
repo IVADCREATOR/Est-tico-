@@ -198,8 +198,8 @@
       ${ultima}
       ${podeConectar ? `<form id="botConectar" class="admin-form" novalidate>
         <div class="admin-form-grid">
-          <label>Número do bot (com DDD)<input id="botTelefone" required inputmode="tel" autocomplete="off" placeholder="11 91234-5678" maxlength="20"></label>
-          <label>Seu número pessoal (dono) <span class="field-optional">opcional</span><input id="botDono" inputmode="tel" autocomplete="off" placeholder="Outro número seu" maxlength="20"></label>
+          <label>Número do bot (com código do país)<input id="botTelefone" required inputmode="tel" autocomplete="off" placeholder="+55 11 91234-5678" maxlength="20"></label>
+          <label>Seu número pessoal (dono) <span class="field-optional">opcional</span><input id="botDono" inputmode="tel" autocomplete="off" placeholder="+55 11 98888-7777" maxlength="20"></label>
         </div>
         <p class="field-hint">Use um número que você possa deixar conectado. O dono é quem manda comandos de dono pelo WhatsApp (precisa ser diferente do número do bot). Nunca pedimos senha ou código por mensagem.</p>
         <div class="admin-actions"><button class="btn btn-primary" type="submit">Pedir conexão</button></div>
@@ -279,7 +279,7 @@
       form.onsubmit = (e) => {
         e.preventDefault();
         const tel = document.getElementById("botTelefone").value.trim();
-        if (tel.replace(/\D/g, "").length < 10) { Sora.toast("Digite o número com DDD.", "error"); return; }
+        if (tel.replace(/\D/g, "").length < 8) { Sora.toast("Digite o número completo, com o código do país (ex: +55 11 91234-5678).", "error"); return; }
         acao(form.querySelector('button[type="submit"]'), "connect", { phone: tel, owner_contact: document.getElementById("botDono").value.trim() || undefined });
       };
     }
