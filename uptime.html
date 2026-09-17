@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Disponibilidade — Sorasaki</title>
+<meta name="description" content="Histórico de conexão do bot Sorasaki: disponibilidade, quedas, reconexões e tempo fora do ar.">
+<link rel="canonical" href="https://www.sorasakiplatform.store/uptime">
+<meta name="theme-color" content="#0c0b10">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sorasaki">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:url" content="https://www.sorasakiplatform.store/uptime">
+<meta property="og:title" content="Disponibilidade do Sorasaki">
+<meta property="og:description" content="Histórico de conexão do bot: disponibilidade, quedas e reconexões.">
+<meta property="og:image" content="https://www.sorasakiplatform.store/og-image.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://www.sorasakiplatform.store/og-image.jpg">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preload" href="/fonts/bricolage-grotesque.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/style.css?v=20260912c">
+</head>
+<body data-live="true">
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/" aria-label="Sorasaki, página inicial"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.1 7.4 7.4 2.1-7.4 2.1L12 21.5l-2.1-7.4L2.5 12l7.4-2.1z" fill="currentColor"/></svg></span><span class="brand-name">SORASAKI</span></a>
+    <nav class="site-nav" aria-label="Principal"><a href="/grupos">Grupos</a><a href="/catalogo">Catálogo</a><a href="/noticias">Notícias</a><a href="/suporte">Suporte</a></nav>
+    <div class="topbar-actions">
+      
+      <button class="sora-login-trigger" type="button" aria-label="Entrar ou criar conta"><span class="login-avatar" aria-hidden="true"></span><span class="login-trigger-label">Entrar</span></button>
+      <button class="menu-trigger" type="button" aria-label="Abrir menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="conteudo">
+  <div class="page-head">
+    <span class="eyebrow">Disponibilidade</span>
+    <h1>Histórico de conexão.</h1>
+    <p class="lead">Quanto tempo o bot ficou conectado desde o último reinício, quantas vezes a conexão caiu e quanto demorou para voltar.</p>
+  </div>
+
+  <div class="aviso section-sm" id="avisoConexao" role="status"></div>
+
+  <div class="kpi-grid section-sm">
+    <div class="kpi"><span class="kpi-label">Disponibilidade</span><span class="kpi-value" id="valDisponibilidade">—</span><span class="kpi-foot">desde o último reinício</span></div>
+    <div class="kpi"><span class="kpi-label">Conectado há</span><span class="kpi-value" id="valUptimeSessao">—</span><span class="kpi-foot">sessão atual</span></div>
+    <div class="kpi"><span class="kpi-label">Em funcionamento há</span><span class="kpi-value" id="valUptimeProcesso">—</span><span class="kpi-foot">desde o último reinício</span></div>
+    <div class="kpi"><span class="kpi-label">Quedas</span><span class="kpi-value" id="valQuedas">—</span><span class="kpi-foot" id="valReconexoes">&nbsp;</span></div>
+    <div class="kpi"><span class="kpi-label">Tempo fora do ar</span><span class="kpi-value" id="valOfflineAcumulado">—</span><span class="kpi-foot">somado</span></div>
+  </div>
+
+  <div class="two-col section-sm">
+    <section class="panel">
+      <h2 class="panel-title">Últimos eventos</h2>
+      <ul class="timeline" id="tabelaUltimasConexoes"><li class="empty">Carregando…</li></ul>
+    </section>
+    <section class="panel">
+      <h2 class="panel-title">Quedas recentes</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Quando</th><th>O que houve</th><th class="num">Duração</th></tr></thead>
+          <tbody id="tabelaQuedas"><tr><td colspan="3" class="empty">Carregando…</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><a class="brand" href="/"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.1 7.4 7.4 2.1-7.4 2.1L12 21.5l-2.1-7.4L2.5 12l7.4-2.1z" fill="currentColor"/></svg></span><span class="brand-name">SORASAKI</span></a><p>Um bot que protege grupos de WhatsApp e uma vitrine para comunidades. Trocas, vendas e serviços.</p></div>
+    <div class="footer-col"><h4>Explorar</h4><a href="/grupos">Grupos</a><a href="/catalogo">Catálogo</a><a href="/noticias">Notícias</a><a href="/sobre">Sobre</a></div>
+    <div class="footer-col"><h4>Bot e ajuda</h4><a href="/suporte">Suporte</a><a href="/feedback">Avaliações e bugs</a><a href="/termos">Termos de Uso</a><a href="/privacidade">Privacidade</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2026 Sorasaki</span><span>Trocas · Vendas · Serviços</span></div>
+</footer>
+
+<script src="/config.js"></script>
+<script src="/vendor/supabase-js-2.116.0.js"></script>
+<script src="/app.js?v=20260912c"></script>
+<script src="/js/uptime.js?v=20260912c"></script>
+</body>
+</html>

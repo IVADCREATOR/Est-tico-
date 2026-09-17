@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="robots" content="noindex">
+<title>Configurações — Sorasaki</title>
+<meta name="description" content="Preferências do Sorasaki neste aparelho.">
+<meta name="theme-color" content="#0c0b10">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preload" href="/fonts/bricolage-grotesque.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/style.css?v=20260912c">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/" aria-label="Sorasaki, página inicial"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.1 7.4 7.4 2.1-7.4 2.1L12 21.5l-2.1-7.4L2.5 12l7.4-2.1z" fill="currentColor"/></svg></span><span class="brand-name">SORASAKI</span></a>
+    <nav class="site-nav" aria-label="Principal"><a href="/grupos">Grupos</a><a href="/catalogo">Catálogo</a><a href="/noticias">Notícias</a><a href="/suporte">Suporte</a></nav>
+    <div class="topbar-actions">
+      
+      <button class="sora-login-trigger" type="button" aria-label="Entrar ou criar conta"><span class="login-avatar" aria-hidden="true"></span><span class="login-trigger-label">Entrar</span></button>
+      <button class="menu-trigger" type="button" aria-label="Abrir menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="conteudo">
+  <div class="page-head">
+    <span class="eyebrow">Configurações</span>
+    <h1>Preferências.</h1>
+    <p class="lead">Ajustes que valem só para este aparelho e este navegador.</p>
+  </div>
+
+  <section class="panel section-sm">
+    <div class="settings-list">
+      <div class="setting-row">
+        <div><strong>Reduzir animações</strong><p>Desliga transições e efeitos de entrada. Se o seu aparelho já pede menos movimento, o site respeita automaticamente.</p></div>
+        <label class="switch"><input type="checkbox" id="prefMotion" aria-label="Reduzir animações"><span></span></label>
+      </div>
+      <div class="setting-row">
+        <div><strong>Assistente de perguntas frequentes</strong><p>Mostra o botão da Sorasaki no canto da tela com respostas rápidas.</p></div>
+        <label class="switch"><input type="checkbox" id="prefAssistant" aria-label="Mostrar assistente"><span></span></label>
+      </div>
+      <div class="setting-row">
+        <div><strong>Estatísticas de uso (Google Analytics)</strong><p>Ajuda a entender, de forma agregada, quais páginas são mais usadas. Desligando, este aparelho deixa de enviar esses dados.</p></div>
+        <label class="switch"><input type="checkbox" id="prefAnalytics" aria-label="Permitir estatísticas de uso"><span></span></label>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel section-sm">
+    <div class="settings-list">
+      <div class="setting-row">
+        <div><strong>Conta</strong><p data-when-guest>Você não está conectado. Entre para gerenciar seu perfil, senha e divulgações.</p><p data-when-logged hidden>Nome de usuário, e-mail, senha, verificação em duas etapas, sessões e exclusão da conta ficam no seu perfil.</p></div>
+        <button class="btn btn-sm" type="button" id="prefAccount">Abrir</button>
+      </div>
+      <div class="setting-row" data-bot-platform hidden>
+        <div><strong>Meu bot</strong><p>Tenha o SORASAKI no seu próprio número: planos, conexão e controle dos grupos.</p></div>
+        <a class="btn btn-sm" href="/meu-bot">Abrir</a>
+      </div>
+      <div class="setting-row">
+        <div><strong>Avaliações e bugs</strong><p>Avalie o Sorasaki, sugira uma função ou relate algo que não funcionou.</p></div>
+        <a class="btn btn-sm" href="/feedback">Abrir</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><a class="brand" href="/"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.1 7.4 7.4 2.1-7.4 2.1L12 21.5l-2.1-7.4L2.5 12l7.4-2.1z" fill="currentColor"/></svg></span><span class="brand-name">SORASAKI</span></a><p>Um bot que protege grupos de WhatsApp e uma vitrine para comunidades. Trocas, vendas e serviços.</p></div>
+    <div class="footer-col"><h4>Explorar</h4><a href="/grupos">Grupos</a><a href="/catalogo">Catálogo</a><a href="/noticias">Notícias</a><a href="/sobre">Sobre</a></div>
+    <div class="footer-col"><h4>Bot e ajuda</h4><a href="/suporte">Suporte</a><a href="/feedback">Avaliações e bugs</a><a href="/termos">Termos de Uso</a><a href="/privacidade">Privacidade</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2026 Sorasaki</span><span>Trocas · Vendas · Serviços</span></div>
+</footer>
+
+<script src="/config.js"></script>
+<script src="/vendor/supabase-js-2.116.0.js"></script>
+<script src="/app.js?v=20260912c"></script>
+<script src="/js/configuracoes.js?v=20260912c"></script>
+</body>
+</html>
