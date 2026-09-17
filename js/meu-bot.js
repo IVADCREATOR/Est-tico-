@@ -46,26 +46,34 @@
   }
 
   /* ---------------- carregar ---------------- */
+  let chamadaAtual = 0;
+
   async function carregar() {
     clearTimeout(timer);
+    const minhaChamada = ++chamadaAtual;
     await auth.ready;
+    if (minhaChamada !== chamadaAtual) return;
     if (!auth.getUser()) {
+      if (minhaChamada !== chamadaAtual) return;
       area.innerHTML = '<div class="empty-state"><strong>Entre para conectar o seu bot</strong><span>É preciso ter uma conta no Sorasaki.</span><button class="btn btn-primary btn-sm" type="button" data-login>Entrar ou criar conta</button></div>';
       area.querySelector("[data-login]").onclick = () => auth.open("login");
       return;
     }
     let r;
     try { r = await api("status"); } catch (e) {
+      if (minhaChamada !== chamadaAtual) return;
       area.innerHTML = Sora.emptyState("Não foi possível carregar.", Sora.friendlyError(e), { retry: true, icon: "alert" });
       area.querySelector("[data-retry]").onclick = carregar;
       return;
     }
+    if (minhaChamada !== chamadaAtual) return;
     if (!r.ok) {
       area.innerHTML = Sora.emptyState("Não foi possível carregar.", r.body?.message || "Tente de novo em instantes.", { retry: true, icon: "alert" });
       area.querySelector("[data-retry]").onclick = carregar;
       return;
     }
     dados = r.body;
+
     if (dados.phase_notice) document.querySelector("[data-phase-text]").textContent = dados.phase_notice;
     render();
     const rapido = ["dispatched", "code_ready", "approved"].includes(dados.connection?.status) || ["connecting", "restarting"].includes(dados.instance?.status?.code);
@@ -135,7 +143,7 @@
         <div><dt>${s.status === "trialing" ? "Teste até" : "Vencimento"}</dt><dd>${fmt(s.status === "trialing" ? s.trial_ends_at : s.current_period_end)}</dd></div>
         ${s.cancel_at_period_end ? '<div class="wide"><dt>Cancelamento</dt><dd>Agendado para o fim do período.</dd></div>' : ""}
       </dl>
-      ${pend.length ? `<p class="bot-warning">Pagamento ${pend[0].is_test ? "de teste " : ""}aguardando confirmação (${dinheiro(pend[0].amount)}).</p>` : ""}
+      ${pend.length ? `<p class="bot-warning">Pagamento ${pend[0].is_test ? "de teste " : ""}aguardando confirmação (${dinheiro(pend[0].amount)}).${pend[0].checkout_url ? ` <a class="btn btn-sm btn-primary" href="${esc(pend[0].checkout_url)}">Continuar pagamento</a>` : ""}</p>` : ""}
       ${aberta ? `<div class="admin-actions">
         ${s.status !== "pending_payment" && !pend.length ? '<button class="btn btn-sm btn-primary" type="button" data-acao="renew">Renovar</button>' : ""}
         <select id="botTrocaPlano" aria-label="Trocar plano">${opcoes}</select><button class="btn btn-sm" type="button" data-acao="change-plan">Trocar plano</button>
@@ -168,7 +176,7 @@
     const conectado = i.phone_masked && ["online", "connecting", "restarting", "offline", "worker_unavailable", "no_internet", "temporary_failure", "maintenance"].includes(i.status?.code) && c?.status === "connected";
     if (aberta) {
       const codigo = c.pairing_code ? `
-        <div class="pairing-code" role="status"><span>Seu código</span><strong>${esc(c.pairing_code)}</strong><small data-expira="${esc(c.code_expires_at || "")}">vale por poucos minutos</small></div>
+        <div class="pairing-code" role="status"><span>Seu código</span><strong data-codigo>${esc(c.pairing_code)}</strong><button class="btn btn-sm btn-ghost" type="button" data-copiar-codigo="${esc(c.pairing_code)}">Copiar</button><small data-expira="${esc(c.code_expires_at || "")}">vale por poucos minutos</small></div>
         <ol class="bot-steps">
           <li>No celular com o número ${esc(c.phone_masked || "")}, abra o WhatsApp.</li>
           <li>Toque em <b>Configurações → Aparelhos conectados → Conectar um aparelho</b>.</li>
@@ -228,6 +236,24 @@
 
   /* ---------------- eventos da tela ---------------- */
   function ligar() {
+    area.querySelectorAll("[data-copiar-codigo]").forEach((b) => {
+      b.onclick = async () => {
+        const codigo = b.dataset.copiarCodigo || "";
+        try {
+          await navigator.clipboard.writeText(codigo);
+        } catch (e) {
+          const campo = document.createElement("textarea");
+          campo.value = codigo;
+          campo.style.position = "fixed";
+          campo.style.opacity = "0";
+          document.body.appendChild(campo);
+          campo.select();
+          try { document.execCommand("copy"); } catch (e2) {}
+          campo.remove();
+        }
+        Sora.toast("Código copiado.", "ok", 2000);
+      };
+    });
     area.querySelectorAll("[data-assinar]").forEach((b) => {
       b.onclick = () => acao(b, "subscribe", { plan_code: b.dataset.assinar, instance_name: document.getElementById("botNome")?.value || undefined });
     });
