@@ -14,6 +14,11 @@
   let timer = null;
   let contagem = null;
 
+  // Campos do formulário "Conectar número" que não podem ser apagados por um
+  // re-render automático (polling ou o usuário voltando de outra aba/app)
+  // enquanto ainda não foram enviados.
+  const CAMPOS_PRESERVAVEIS = ["botTelefone", "botDono"];
+
   const fmt = (d) => (d ? new Date(d).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }) : ND);
   const dinheiro = (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   const val = (v) => (v === null || v === undefined || v === "" ? ND : esc(String(v)));
@@ -81,7 +86,50 @@
   }
 
   /* ---------------- telas ---------------- */
+  // Guarda o que está nos campos preserváveis (e qual deles estava focado)
+  // antes de jogar fora o HTML atual.
+  function capturarCamposPreservaveis() {
+    const valores = {};
+    for (const id of CAMPOS_PRESERVAVEIS) {
+      const el = document.getElementById(id);
+      if (el) valores[id] = el.value;
+    }
+    const ativo = document.activeElement;
+    return {
+      valores,
+      focoId: ativo && CAMPOS_PRESERVAVEIS.includes(ativo.id) ? ativo.id : null,
+      selecaoInicio: ativo && "selectionStart" in ativo ? ativo.selectionStart : null,
+      selecaoFim: ativo && "selectionEnd" in ativo ? ativo.selectionEnd : null
+    };
+  }
+
+  // Depois de recriar o HTML, devolve os valores (só se o campo ainda existir
+  // na tela nova) e o foco/cursor de volta pro lugar.
+  function restaurarCamposPreservaveis(estado) {
+    for (const id of CAMPOS_PRESERVAVEIS) {
+      const valor = estado.valores[id];
+      if (!valor) continue;
+      const el = document.getElementById(id);
+      if (el && !el.value) el.value = valor;
+    }
+    if (estado.focoId) {
+      const el = document.getElementById(estado.focoId);
+      if (el) {
+        el.focus();
+        if (estado.selecaoInicio !== null && estado.selecaoFim !== null && typeof el.setSelectionRange === "function") {
+          try { el.setSelectionRange(estado.selecaoInicio, estado.selecaoFim); } catch (e) {}
+        }
+      }
+    }
+  }
+
   function render() {
+    // Preserva o que a pessoa já tinha digitado no formulário "Conectar
+    // número" antes de recriar a tela — sem isso, tanto o polling automático
+    // quanto o "voltar de outra aba/app" (ex.: abrir o WhatsApp pra parear)
+    // apagavam o número no meio da digitação.
+    const camposPreservados = capturarCamposPreservaveis();
+
     if (!dados.enabled) {
       area.innerHTML = Sora.emptyState("Em breve", "A área de bots individuais ainda está sendo liberada. Volte em alguns dias.", { icon: "star" });
       return;
@@ -97,6 +145,7 @@
       ${dados.instance ? painelGrupos() : ""}
       ${dados.instance ? painelEventos() : ""}`;
     ligar();
+    restaurarCamposPreservaveis(camposPreservados);
   }
 
   function badge(st) {
