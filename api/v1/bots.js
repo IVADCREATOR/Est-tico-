@@ -14,11 +14,16 @@ import {
 } from '../_supabase.js';
 import {
   enc, sel, one, ins, upd, del, rpc, tabelaAusente, violacaoUnica, refreshAssinaturas, lerConfig, BOT_SETTINGS_DEFAULTS,
-  gatewayDisponivel, MSG_PAGAMENTO_TESTE, hmac, normalizarTelefone, mascararTelefone, limparTexto, nomeValido, uuidValido,
+  gatewayDisponivel, MSG_PAGAMENTO_TESTE, linkWhatsAppPlano, hmac, normalizarTelefone, mascararTelefone, limparTexto, nomeValido, uuidValido,
   contextoPedido, statusExibido, instanciaPublica, assinaturaPublica, pagamentoPublico, eventoPublico, planoPublico,
   CATALOGO, chaveValida, evento, auditar, gerarTokenWorker, atribuirWorker, criarTarefa, despacharConexao, localExecucao,
   inteiro, WORKER_TIMEOUT_MS
 } from '../_bots.js';
+
+// Número de WhatsApp da equipe pra fechar a contratação dos planos de bot
+// diretamente (substitui o antigo checkout automático do Mercado Pago).
+// Pode ser sobrescrito por variável de ambiente sem precisar mexer no código.
+const SUPPORT_WHATSAPP = process.env.SUPPORT_WHATSAPP_NUMBER || '5511963395023';
 
 class Erro extends Error {
   constructor(status, message) { super(message); this.status = status; }
@@ -197,8 +202,9 @@ async function acaoAssinar({ user, cfg, body }) {
   if (!gw.available) throw new Erro(503, 'O pagamento ainda não está disponível. Tente mais tarde.');
   const sub = (await ins('bot_subscriptions', [{ user_id: user.id, instance_id: inst.id, plan_id: plano.id, status: 'pending_payment', price: plano.price, currency: plano.currency, period: plano.period,
     gateway: gw.gateway, last_change_by: user.id, last_change_by_type: 'user', last_change_reason: 'Assinatura solicitada.' }]))[0];
-  const pay = await novaCobranca(sub, plano, 'new', user.id, gw);
-  return { message: pay.checkout_url ? 'Assinatura criada. Finalize o pagamento para ativar.' : 'Assinatura criada. ' + MSG_PAGAMENTO_TESTE, subscription_id: sub.id, checkout_url: pay.checkout_url || null };
+  const pay = await novaCobranca(sub, plano, 'new', user.id, gw, inst.name);
+  const mensagem = pay.whatsapp_url ? 'Assinatura registrada! Fale com a gente no WhatsApp para combinar o pagamento e ativar o bot.' : 'Assinatura criada. ' + MSG_PAGAMENTO_TESTE;
+  return { message: mensagem, subscription_id: sub.id, whatsapp_url: pay.whatsapp_url || null };
 }
 
 async function planoPorCodigo(code) {
@@ -208,47 +214,15 @@ async function planoPorCodigo(code) {
   if (!p) throw new Erro(404, 'Este plano não está disponível.');
   return p;
 }
-async function criarCheckoutMercadoPago(pay, plano) {
-  const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
-  const origin = String(process.env.SITE_URL || 'https://www.sorasakiplatform.store').replace(/\/+$/, '');
-  const payload = {
-    items: [{
-      id: String(plano.id), title: `Sorasaki — Bot ${plano.name}`, description: plano.description || undefined,
-      quantity: 1, currency_id: plano.currency || 'BRL', unit_price: Number(pay.amount)
-    }],
-    external_reference: String(pay.id),
-    notification_url: `${origin}/api/mercadopago-webhook`,
-    back_urls: {
-      success: `${origin}/meu-bot?pagamento=sucesso`,
-      pending: `${origin}/meu-bot?pagamento=pendente`,
-      failure: `${origin}/meu-bot?pagamento=erro`
-    },
-    auto_return: 'approved',
-    metadata: { bot_payment_id: String(pay.id), kind: 'bot_subscription' }
-  };
-  const mp = await fetch('https://api.mercadopago.com/checkout/preferences', {
-    method: 'POST', headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-  });
-  const data = await mp.json().catch(() => ({}));
-  if (!mp.ok || !data.id || !data.init_point) {
-    console.error('bots.js: Mercado Pago recusou a preferência do bot', mp.status, data?.message || '');
-    return null;
-  }
-  return { checkout_url: data.init_point, gateway_payment_id: String(data.id) };
-}
-
-async function novaCobranca(sub, plano, kind, userId, gw) {
+async function novaCobranca(sub, plano, kind, userId, gw, nomeInstancia) {
   await upd('bot_payments', `subscription_id=eq.${enc(sub.id)}&status=eq.pending`, { status: 'canceled' }, { returning: false });
   const pay = (await ins('bot_payments', [{ subscription_id: sub.id, user_id: userId, plan_id: plano.id, kind, amount: plano.price, currency: plano.currency,
     period_days: plano.duration_days, status: 'pending', is_test: gw.is_test, gateway: gw.gateway, expires_at: new Date(Date.now() + 7 * 86400000).toISOString() }]))[0];
-  if (gw.gateway === 'mercadopago') {
-    const checkout = await criarCheckoutMercadoPago(pay, plano);
-    if (checkout) await upd('bot_payments', `id=eq.${enc(pay.id)}`, checkout, { returning: false });
-    else await upd('bot_payments', `id=eq.${enc(pay.id)}`, { status: 'canceled' }, { returning: false });
-    Object.assign(pay, checkout || {});
+  if (gw.gateway === 'whatsapp') {
+    pay.whatsapp_url = linkWhatsAppPlano(SUPPORT_WHATSAPP, plano, nomeInstancia);
   }
   await evento({ instance_id: sub.instance_id, user_id: userId, subscription_id: sub.id, kind: 'payment', event: 'payment_created', actor_type: 'user', actor_id: userId,
-    message: gw.is_test ? 'Cobrança de teste criada (aguardando confirmação do admin).' : 'Cobrança criada.' });
+    message: gw.is_test ? 'Cobrança de teste criada (aguardando confirmação do admin).' : 'Cobrança criada — combinar pagamento pelo WhatsApp.' });
   return pay;
 }
 async function assinaturaAberta(user, body) {
@@ -267,7 +241,7 @@ async function acaoTrocarPlano({ user, cfg, body }) {
     await upd('bot_subscriptions', `id=eq.${enc(sub.id)}`, { plan_id: plano.id, price: plano.price, period: plano.period, next_plan_id: null,
       last_change_by: user.id, last_change_by_type: 'user', last_change_reason: 'Plano trocado antes do pagamento.' }, { returning: false });
     if (sub.status === 'pending_payment') await novaCobranca({ ...sub, plan_id: plano.id }, plano, 'plan_change', user.id, gatewayDisponivel(cfg.bot_payment_mode));
-    return { message: `Plano trocado para ${plano.name}.` };
+    return { message: `Plano trocado para ${plano.name}. Se ainda não confirmou o pagamento, fale com a gente no WhatsApp.` };
   }
   await upd('bot_subscriptions', `id=eq.${enc(sub.id)}`, { next_plan_id: plano.id === sub.plan_id ? null : plano.id,
     last_change_by: user.id, last_change_by_type: 'user', last_change_reason: 'Troca de plano agendada.' }, { returning: false });
@@ -275,15 +249,16 @@ async function acaoTrocarPlano({ user, cfg, body }) {
 }
 
 async function acaoRenovar({ user, cfg, body }) {
-  const { sub } = await assinaturaAberta(user, body);
+  const { sub, inst } = await assinaturaAberta(user, body);
   if (sub.status === 'pending_payment') throw new Erro(409, 'Já existe um pagamento aguardando confirmação.');
   const pend = await sel('bot_payments', `subscription_id=eq.${enc(sub.id)}&status=eq.pending&select=id`);
   if (pend.length) return { message: 'Já existe uma renovação aguardando confirmação.' };
   const gw = gatewayDisponivel(cfg.bot_payment_mode);
   if (!gw.available) throw new Erro(503, 'O pagamento ainda não está disponível. Tente mais tarde.');
   const plano = await one('bot_plans', `id=eq.${sub.next_plan_id || sub.plan_id}&select=*`);
-  const pay = await novaCobranca(sub, plano, 'renewal', user.id, gw);
-  return { message: pay.checkout_url ? 'Renovação criada. Finalize o pagamento para ativar.' : 'Renovação solicitada. ' + MSG_PAGAMENTO_TESTE, checkout_url: pay.checkout_url || null };
+  const pay = await novaCobranca(sub, plano, 'renewal', user.id, gw, inst.name);
+  const mensagem = pay.whatsapp_url ? 'Renovação registrada! Fale com a gente no WhatsApp para combinar o pagamento.' : 'Renovação solicitada. ' + MSG_PAGAMENTO_TESTE;
+  return { message: mensagem, whatsapp_url: pay.whatsapp_url || null };
 }
 
 async function acaoCancelar({ user, body }) {
@@ -319,7 +294,7 @@ async function acaoConectar({ req, user, body }) {
   if (inst.phone_hash && inst.op_status === 'online') throw new Erro(409, 'Este bot já está conectado. Desconecte antes de trocar o número.');
 
   const tel = normalizarTelefone(body.phone);
-  if (!tel) throw new Erro(400, 'Número inválido. Use DDD e número, por exemplo 11 91234-5678 (com o código do país se não for do Brasil).');
+  if (!tel) throw new Erro(400, 'Número inválido. Digite sempre com o código do país, por exemplo +55 11 91234-5678 (Brasil), +1 305 555-0100 (EUA) ou +56 9 4648 4169 (Chile).');
   const h = hmac('phone:' + tel);
   const outro = await sel('bot_instances', `phone_hash=eq.${enc(h)}&id=neq.${enc(inst.id)}&select=id`);
   const pedidoOutro = await sel('bot_connections', `phone_e164=eq.${tel}&status=in.(${CONEXAO_ABERTA.join(',')})&instance_id=neq.${enc(inst.id)}&select=id`);
@@ -328,7 +303,7 @@ async function acaoConectar({ req, user, body }) {
   const patch = {};
   if (body.owner_contact) {
     const dono = normalizarTelefone(body.owner_contact);
-    if (!dono) throw new Erro(400, 'O número do dono é inválido.');
+    if (!dono) throw new Erro(400, 'O número do dono é inválido. Digite sempre com o código do país (ex: +55, +1, +56...).');
     if (dono === tel) throw new Erro(400, 'O número do dono precisa ser diferente do número do bot (o bot ignora mensagens dele mesmo).');
     patch.owner_contact_e164 = dono; patch.owner_contact_masked = mascararTelefone(dono);
   }
@@ -817,8 +792,7 @@ async function adminSalvarConfig(req, admin, body) {
     else if (key === 'bot_max_instances_per_user') v = inteiro(v, 1, 10, null);
     else if (key === 'bot_log_retention_days') v = [3, 7, 15, 30].includes(Number(v)) ? Number(v) : null;
     else if (key === 'bot_payment_mode') {
-      if (!['manual_test', 'mercadopago'].includes(v)) throw new Erro(400, 'Modo de pagamento inválido.');
-      if (v === 'mercadopago' && !gatewayDisponivel('mercadopago').available) throw new Erro(400, 'Configure MERCADOPAGO_ACCESS_TOKEN e MERCADOPAGO_WEBHOOK_SECRET na Vercel antes de ativar o Mercado Pago.');
+      if (!['whatsapp', 'manual_test'].includes(v)) throw new Erro(400, 'Modo de pagamento inválido.');
     }
     if (v === null || v === undefined) throw new Erro(400, `Valor inválido para ${key}.`);
     rows.push({ key, value: v });

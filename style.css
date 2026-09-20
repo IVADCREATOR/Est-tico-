@@ -1327,6 +1327,19 @@ details.form-block > .form-block-body { display: grid; gap: 16px; }
 .switch input:checked + span::after { transform: translateX(20px); background: #150f25; }
 .switch input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
 
+/* Divulgação automática: destacada dos outros ajustes, é a principal alavanca
+   de crescimento do cliente, então ganha um cartão próprio em vez de ficar
+   perdida na lista genérica de configurações. */
+.divulgacao-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 18px 20px; margin: 4px 0 20px; border-radius: var(--radius-lg, 18px); border: 1px solid var(--line-2); background: linear-gradient(135deg, rgba(196, 166, 255, .14), rgba(196, 166, 255, .04)); }
+.divulgacao-card.is-on { border-color: rgba(196, 166, 255, .4); }
+.divulgacao-card-icon { display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; background: var(--surface-3); color: var(--accent); flex-shrink: 0; }
+.divulgacao-card-icon svg { width: 20px; height: 20px; }
+.divulgacao-card-copy strong { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.divulgacao-card-copy p { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.switch-lg { width: 60px; height: 36px; }
+.switch-lg span::after { width: 26px; height: 26px; }
+.switch-lg input:checked + span::after { transform: translateX(24px); }
+
 .catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
 .catalog-card { display: flex; flex-direction: column; overflow: hidden; border-radius: var(--radius-lg); border: 1px solid var(--line); background: var(--glass), var(--surface-glass); box-shadow: var(--glass-edge); }
 .catalog-card img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; background: var(--surface-2); }

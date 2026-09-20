@@ -23,6 +23,15 @@
   const dinheiro = (v) => Number(v || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
   const val = (v) => (v === null || v === undefined || v === "" ? ND : esc(String(v)));
 
+  // Monta o link do WhatsApp pra fechar a contratação/renovação de um plano
+  // (substitui o antigo link de checkout do Mercado Pago).
+  function linkWhatsAppPagamento(plano, nomeInstancia) {
+    const numero = String(window.SORASAKI_CONTACT?.whatsapp || "").replace(/\D/g, "");
+    if (!numero) return null;
+    const texto = `Olá! Quero contratar o plano ${plano || ""} do Sorasaki${nomeInstancia ? ` pro bot "${nomeInstancia}"` : ""}.`;
+    return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`;
+  }
+
   async function api(type, body) {
     const token = await auth.getToken();
     const opts = body === undefined
@@ -37,10 +46,11 @@
     try {
       const r = await api(type, body || {});
       if (!r.ok) { Sora.toast(r.body?.message || "Não foi possível concluir. Tente de novo.", "error", 6000); return; }
-      const checkoutUrl = r.body?.checkout_url;
-      if ((type === "subscribe" || type === "renew" || type === "change-plan") && checkoutUrl) {
-        Sora.toast("Pagamento criado. Redirecionando para o Mercado Pago…", "ok", 2500);
-        window.location.assign(checkoutUrl);
+      const whatsappUrl = r.body?.whatsapp_url;
+      if ((type === "subscribe" || type === "renew" || type === "change-plan") && whatsappUrl) {
+        Sora.toast(r.body?.message || "Fale com a gente no WhatsApp para fechar a contratação.", "ok", 4000);
+        window.open(whatsappUrl, "_blank", "noopener");
+        await carregar();
         return;
       }
       Sora.toast(r.body?.message || "Pronto.", "ok", 5000);
@@ -192,7 +202,7 @@
         <div><dt>${s.status === "trialing" ? "Teste até" : "Vencimento"}</dt><dd>${fmt(s.status === "trialing" ? s.trial_ends_at : s.current_period_end)}</dd></div>
         ${s.cancel_at_period_end ? '<div class="wide"><dt>Cancelamento</dt><dd>Agendado para o fim do período.</dd></div>' : ""}
       </dl>
-      ${pend.length ? `<p class="bot-warning">Pagamento ${pend[0].is_test ? "de teste " : ""}aguardando confirmação (${dinheiro(pend[0].amount)}).${pend[0].checkout_url ? ` <a class="btn btn-sm btn-primary" href="${esc(pend[0].checkout_url)}">Continuar pagamento</a>` : ""}</p>` : ""}
+      ${pend.length ? `<p class="bot-warning">Pagamento ${pend[0].is_test ? "de teste " : ""}aguardando confirmação (${dinheiro(pend[0].amount)}).${pend[0].checkout_url ? ` <a class="btn btn-sm btn-primary" href="${esc(pend[0].checkout_url)}">Continuar pagamento</a>` : pend[0].gateway === "whatsapp" ? ` <a class="btn btn-sm btn-primary" href="${esc(linkWhatsAppPagamento(s.plan?.name, dados.instance?.name) || "#")}" target="_blank" rel="noopener">Falar no WhatsApp</a>` : ""}</p>` : ""}
       ${aberta ? `<div class="admin-actions">
         ${s.status !== "pending_payment" && !pend.length ? '<button class="btn btn-sm btn-primary" type="button" data-acao="renew">Renovar</button>' : ""}
         <select id="botTrocaPlano" aria-label="Trocar plano">${opcoes}</select><button class="btn btn-sm" type="button" data-acao="change-plan">Trocar plano</button>
@@ -247,10 +257,10 @@
       ${ultima}
       ${podeConectar ? `<form id="botConectar" class="admin-form" novalidate>
         <div class="admin-form-grid">
-          <label>Número do bot (com código do país)<input id="botTelefone" required inputmode="tel" autocomplete="off" placeholder="+55 11 91234-5678" maxlength="20"></label>
+          <label>Número do bot (com código do país)<input id="botTelefone" required inputmode="tel" autocomplete="off" placeholder="+55 11 91234-5678 ou +1 305 555-0100" maxlength="20"></label>
           <label>Seu número pessoal (dono) <span class="field-optional">opcional</span><input id="botDono" inputmode="tel" autocomplete="off" placeholder="+55 11 98888-7777" maxlength="20"></label>
         </div>
-        <p class="field-hint">Use um número que você possa deixar conectado. O dono é quem manda comandos de dono pelo WhatsApp (precisa ser diferente do número do bot). Nunca pedimos senha ou código por mensagem.</p>
+        <p class="field-hint">Aceitamos número de qualquer país — sempre comece pelo <b>+</b> e o código do país (+55 Brasil, +1 EUA/Canadá, +56 Chile, +351 Portugal...). O dono é quem manda comandos de dono pelo WhatsApp (precisa ser diferente do número do bot). Nunca pedimos senha ou código por mensagem.</p>
         <div class="admin-actions"><button class="btn btn-primary" type="submit">Pedir conexão</button></div>
       </form>` : `<p class="admin-muted">${dados.subscription?.status === "pending_payment" ? "Assim que o pagamento for confirmado, você poderá conectar o número aqui." : "Renove a assinatura para conectar um número."}</p>`}
     </section>`;
@@ -259,21 +269,35 @@
   function painelGrupos() {
     const grupos = dados.groups || [];
     const cat = dados.catalog || [];
-    const corpo = grupos.length ? grupos.map((g) => `
+    const catDivulgacao = cat.find((c) => c.key === "feature:divulgacao_automatica");
+    const catResto = cat.filter((c) => c.key !== "feature:divulgacao_automatica");
+    const corpo = grupos.length ? grupos.map((g) => {
+      const sDiv = catDivulgacao ? g.settings[catDivulgacao.key] : null;
+      const atualDiv = catDivulgacao ? (sDiv ? sDiv.enabled : (g.actual[catDivulgacao.key] ?? true)) : false;
+      return `
       <details class="bot-group">
         <summary><strong>${esc(g.name || "Grupo sem nome")}</strong><span class="admin-muted">${g.member_count ?? "?"} membros · ${g.bot_is_admin ? "bot é admin" : "bot não é admin"} · última atividade: ${fmt(g.last_activity_at)}</span></summary>
         <p class="admin-muted">ID protegido: ${esc(g.ref)} · visto desde ${fmt(g.first_seen_at)} · comandos: ${g.commands_count}</p>
         ${g.bot_is_admin === false ? '<p class="bot-warning">O bot não é admin neste grupo: funções como antilink e remover membros não funcionam até ele virar admin.</p>' : ""}
-        <div class="settings-list">${cat.map((c) => {
+        ${catDivulgacao ? `<div class="divulgacao-card ${atualDiv ? "is-on" : "is-off"}">
+          <span class="divulgacao-card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 2.5l2.1 7.4 7.4 2.1-7.4 2.1L12 21.5l-2.1-7.4L2.5 12l7.4-2.1z" fill="currentColor"/></svg></span>
+          <div class="divulgacao-card-copy">
+            <strong>Divulgação automática ${atualDiv ? '<span class="status-badge approved">Ativada</span>' : '<span class="status-badge">Desativada</span>'}</strong>
+            <p>${esc(catDivulgacao.how)}${sDiv ? ` <small class="admin-muted">— alterado por ${sDiv.by === "admin" ? "administração" : "você"} em ${fmt(sDiv.at)}${sDiv.pending ? " · aplicando…" : ""}</small>` : ""}</p>
+          </div>
+          <label class="switch switch-lg" title="${atualDiv ? "Desativar" : "Ativar"} divulgação automática"><input type="checkbox" data-grupo="${esc(g.ref)}" data-chave="${esc(catDivulgacao.key)}" ${atualDiv ? "checked" : ""} aria-label="Divulgação automática"><span></span></label>
+        </div>` : ""}
+        <div class="settings-list">${catResto.map((c) => {
           const s = g.settings[c.key];
-          const atual = s ? s.enabled : (g.actual[c.key] ?? (c.key.startsWith("category:") || c.key === "feature:respostas_automaticas" || c.key === "feature:divulgacao_automatica"));
+          const atual = s ? s.enabled : (g.actual[c.key] ?? (c.key.startsWith("category:") || c.key === "feature:respostas_automaticas"));
           return `<div class="setting-row"><div><strong>${esc(c.label)}</strong><p>${esc(c.how)}${s ? ` <small class="admin-muted">— alterado por ${s.by === "admin" ? "administração" : "você"} em ${fmt(s.at)}${s.pending ? " · aplicando…" : ""}</small>` : ""}</p></div>
             <label class="switch"><input type="checkbox" data-grupo="${esc(g.ref)}" data-chave="${esc(c.key)}" ${atual ? "checked" : ""} aria-label="${esc(c.label)}"><span></span></label></div>`;
         }).join("")}</div>
         <form class="admin-toolbar bot-cmd" data-cmd-grupo="${esc(g.ref)}"><input placeholder="Desligar um comando específico (ex.: ban)" maxlength="40" autocapitalize="none"><button class="btn btn-sm" type="submit">Desligar comando</button></form>
         ${Object.entries(g.settings).filter(([k]) => k.startsWith("cmd:")).map(([k, s]) => `<span class="chip-static">${esc(k.slice(4))}: ${s.enabled ? "ligado" : "desligado"} <button class="text-link" type="button" data-grupo="${esc(g.ref)}" data-chave-toggle="${esc(k)}" data-valor="${s.enabled ? "0" : "1"}">${s.enabled ? "desligar" : "religar"}</button></span>`).join(" ")}
         ${g.recent_events?.length ? `<ul class="bot-events">${g.recent_events.map((e) => `<li><small>${fmt(e.at)}</small> ${esc(e.event)}</li>`).join("")}</ul>` : ""}
-      </details>`).join("") : Sora.emptyState("Nenhum grupo ainda.", "Os grupos aparecem aqui quando o bot estiver conectado e dentro deles. Só mostramos grupos em que o bot está.");
+      </details>`;
+    }).join("") : Sora.emptyState("Nenhum grupo ainda.", "Os grupos aparecem aqui quando o bot estiver conectado e dentro deles. Só mostramos grupos em que o bot está.");
     return `<section class="panel"><div class="section-heading"><div><h2>Grupos e comandos</h2></div><span>Cada mudança vale só para o grupo escolhido e chega ao bot em até 1 minuto.</span></div>${corpo}</section>`;
   }
 
@@ -328,7 +352,8 @@
       form.onsubmit = (e) => {
         e.preventDefault();
         const tel = document.getElementById("botTelefone").value.trim();
-        if (tel.replace(/\D/g, "").length < 8) { Sora.toast("Digite o número completo, com o código do país (ex: +55 11 91234-5678).", "error"); return; }
+        if (!tel.startsWith("+") && !tel.startsWith("00")) { Sora.toast("Comece o número pelo código do país (ex: +55 para Brasil, +1 para EUA, +56 para Chile).", "error"); return; }
+        if (tel.replace(/\D/g, "").length < 8) { Sora.toast("Digite o número completo, com DDD/área e código do país.", "error"); return; }
         acao(form.querySelector('button[type="submit"]'), "connect", { phone: tel, owner_contact: document.getElementById("botDono").value.trim() || undefined });
       };
     }

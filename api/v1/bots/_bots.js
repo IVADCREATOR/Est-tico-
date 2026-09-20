@@ -68,7 +68,7 @@ export const BOT_SETTINGS_DEFAULTS = {
   bot_trial_days: 0,
   bot_max_instances_per_user: 1,
   bot_log_retention_days: 15,
-  bot_payment_mode: 'mercadopago'
+  bot_payment_mode: 'whatsapp'
 };
 export async function lerConfig() {
   const rows = await sel('site_settings', `key=in.(${Object.keys(BOT_SETTINGS_DEFAULTS).join(',')})&select=key,value`);
@@ -79,7 +79,7 @@ export async function lerConfig() {
   out.bot_trial_days = inteiro(out.bot_trial_days, 0, 30, 0);
   out.bot_max_instances_per_user = inteiro(out.bot_max_instances_per_user, 1, 10, 1);
   out.bot_log_retention_days = inteiro(out.bot_log_retention_days, 3, 90, 15);
-  out.bot_payment_mode = ['manual_test', 'mercadopago', 'stripe', 'asaas'].includes(out.bot_payment_mode) ? out.bot_payment_mode : 'mercadopago';
+  out.bot_payment_mode = ['whatsapp', 'manual_test', 'stripe', 'asaas'].includes(out.bot_payment_mode) ? out.bot_payment_mode : 'whatsapp';
   return out;
 }
 export function inteiro(v, min, max, fallback) {
@@ -88,20 +88,27 @@ export function inteiro(v, min, max, fallback) {
 }
 
 /* ---------------------------------------------------------------------
- * Pagamentos: estrutura pronta, sem gateway falso.
- * Enquanto nenhum gateway real estiver configurado (credenciais + código
- * do webhook), toda cobrança nasce como teste e só o admin confirma.
+ * Pagamentos: a hospedagem de bots é contratada diretamente pelo WhatsApp
+ * (modo padrão 'whatsapp' — sem gateway automático nenhum, o cliente escolhe
+ * o plano e é direcionado pro WhatsApp da equipe pra combinar e ativar).
+ * 'manual_test' continua existindo pra testes internos, sem cobrar nada.
+ * Stripe/Asaas ficam como possibilidades futuras: a estrutura já prevê
+ * esses valores, mas nenhum dos dois está implementado ainda.
  * ------------------------------------------------------------------- */
 export function gatewayDisponivel(modo) {
   if (modo === 'manual_test') return { available: true, gateway: 'manual', is_test: true };
-  if (modo === 'mercadopago') {
-    const pronto = Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN && process.env.MERCADOPAGO_WEBHOOK_SECRET);
-    return { available: pronto, gateway: 'mercadopago', is_test: false };
-  }
+  if (modo === 'whatsapp') return { available: true, gateway: 'whatsapp', is_test: false };
   // Stripe / Asaas: ligar só depois de confirmar a conta e as credenciais.
   return { available: false, gateway: modo, is_test: false };
 }
 export const MSG_PAGAMENTO_TESTE = 'Modo de teste: nenhum valor é cobrado agora. Um administrador confirma o pagamento manualmente enquanto o meio de pagamento definitivo não é ativado.';
+// Link do WhatsApp pra contratar um plano diretamente com a equipe.
+export function linkWhatsAppPlano(numeroWhatsapp, plano, nomeInstancia) {
+  const numero = String(numeroWhatsapp || '').replace(/\D/g, '');
+  if (!numero) return null;
+  const texto = `Olá! Quero contratar o plano ${plano?.name || ''} do Sorasaki${nomeInstancia ? ` pro bot "${nomeInstancia}"` : ''}.`;
+  return `https://wa.me/${numero}?text=${encodeURIComponent(texto)}`;
+}
 
 /* ---------------------------------------------------------------------
  * Números, textos e identificadores
@@ -116,16 +123,22 @@ export function hmac(valor) {
   return crypto.createHmac('sha256', pepper()).update(String(valor)).digest('hex');
 }
 
-// Aceita "+55 (11) 99999-0000", "11999990000" etc. Sem DDI, assume Brasil.
+// Aceita qualquer número internacional, de qualquer país e código de área —
+// "+55 (11) 99999-0000", "+56 9 4648 4169", "0044 7911 123456" etc. — desde
+// que venha com o código do país (com "+" ou começando por "00"). Não existe
+// mais nenhuma suposição de país por tamanho de número: antes, um número sem
+// "+" com 10 ou 11 dígitos era tratado como Brasil e ganhava um "55" na
+// frente, o que corrompia números estrangeiros do mesmo tamanho (ex.: um
+// número do Chile virava um número brasileiro errado). Agora, sem o "+"/"00",
+// o número é recusado — nada é adivinhado.
 export function normalizarTelefone(entrada) {
   const bruto = String(entrada || '').trim();
   const semFormatacao = bruto.replace(/[\s()\-.]/g, '');
   const comCodigoDePais = semFormatacao.startsWith('+') || semFormatacao.startsWith('00');
+  if (!comCodigoDePais) return null;
   let d = bruto.replace(/\D/g, '');
-  if (d.startsWith('00') && comCodigoDePais) d = d.slice(2);
-  if (!comCodigoDePais && (d.length === 10 || d.length === 11)) d = '55' + d;
+  if (semFormatacao.startsWith('00')) d = d.slice(2);
   if (!/^[1-9][0-9]{7,14}$/.test(d)) return null;
-  if (!comCodigoDePais && d.startsWith('55') && !(d.length === 12 || d.length === 13)) return null;
   return d;
 }
 export function mascararTelefone(d) {

@@ -334,7 +334,7 @@
         <label>Dias de teste grátis (0 = sem teste)<input id="bsTrial" type="number" min="0" max="30" value="${s.bot_trial_days}"></label>
         <label>Bots por conta<input id="bsMax" type="number" min="1" max="10" value="${s.bot_max_instances_per_user}"></label>
         <label>Guardar logs resumidos no banco por<select id="bsRet">${[3, 7, 15, 30].map((d) => `<option value="${d}" ${s.bot_log_retention_days === d ? "selected" : ""}>${d} dias</option>`).join("")}</select></label>
-        <label>Pagamentos<select id="bsPayment"><option value="mercadopago" ${s.bot_payment_mode === "mercadopago" ? "selected" : ""}>Mercado Pago</option><option value="manual_test" ${s.bot_payment_mode === "manual_test" ? "selected" : ""}>Teste manual</option></select></label>
+        <label>Pagamentos<select id="bsPayment"><option value="whatsapp" ${s.bot_payment_mode === "whatsapp" ? "selected" : ""}>Contratar pelo WhatsApp</option><option value="manual_test" ${s.bot_payment_mode === "manual_test" ? "selected" : ""}>Teste manual</option></select></label>
       </div><p class="field-hint">Mercado Pago exige as credenciais de produção configuradas na Vercel. O pagamento só deve liberar a hospedagem após confirmação pelo webhook.</p>
       <div class="admin-actions"><button class="btn btn-primary" type="submit">Salvar ajustes</button><button class="btn" type="button" id="bsMain">Registrar bot principal (só monitoramento)</button></div></form>`;
       $("botSettingsForm").onsubmit = (e) => {
