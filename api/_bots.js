@@ -97,7 +97,14 @@ export function inteiro(v, min, max, fallback) {
  * ------------------------------------------------------------------- */
 export function gatewayDisponivel(modo) {
   if (modo === 'manual_test') return { available: true, gateway: 'manual', is_test: true };
-  if (modo === 'whatsapp') return { available: true, gateway: 'whatsapp', is_test: false };
+  // Importante: o modo "whatsapp" também grava gateway: 'manual' no banco —
+  // o valor 'whatsapp' nunca chega a ser persistido, porque a coluna
+  // `gateway` de bot_payments/bot_subscriptions tem uma restrição (enum/check)
+  // que só aceita os valores já conhecidos ('manual', 'mercadopago', 'stripe',
+  // 'asaas'); gravar 'whatsapp' ali quebrava o insert com erro 500 genérico.
+  // A distinção "é WhatsApp, não é o teste manual antigo" fica em `is_test`
+  // (false pro whatsapp, true pro manual_test) — ver novaCobranca() abaixo.
+  if (modo === 'whatsapp') return { available: true, gateway: 'manual', is_test: false };
   // Stripe / Asaas: ligar só depois de confirmar a conta e as credenciais.
   return { available: false, gateway: modo, is_test: false };
 }
@@ -294,6 +301,7 @@ export const CATALOGO = [
   { key: 'feature:anti_spam', label: 'Anti-spam', como: 'Limita mensagens repetidas em sequência (antiflood).' },
   { key: 'feature:boas_vindas', label: 'Boas-vindas', como: 'Mensagem para quem entra no grupo.' },
   { key: 'feature:divulgacao_automatica', label: 'Divulgação automática', como: 'Permite que este grupo receba os disparos automáticos.' },
+  { key: 'feature:aluguel_liberado', label: 'Aluguel liberado', como: 'Concede acesso permanente ao bot neste grupo, sem cobrar aviso de licença.' },
   { key: 'feature:respostas_automaticas', label: 'Respostas automáticas', como: 'Respostas a palavras sem prefixo.' },
   { key: 'category:admin', label: 'Comandos de administração', como: 'Comandos de admin do grupo (ban, fechar grupo...).' },
   { key: 'category:member', label: 'Comandos de membros', como: 'Comandos que qualquer membro pode usar.' },

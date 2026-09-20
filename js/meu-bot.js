@@ -202,7 +202,7 @@
         <div><dt>${s.status === "trialing" ? "Teste até" : "Vencimento"}</dt><dd>${fmt(s.status === "trialing" ? s.trial_ends_at : s.current_period_end)}</dd></div>
         ${s.cancel_at_period_end ? '<div class="wide"><dt>Cancelamento</dt><dd>Agendado para o fim do período.</dd></div>' : ""}
       </dl>
-      ${pend.length ? `<p class="bot-warning">Pagamento ${pend[0].is_test ? "de teste " : ""}aguardando confirmação (${dinheiro(pend[0].amount)}).${pend[0].checkout_url ? ` <a class="btn btn-sm btn-primary" href="${esc(pend[0].checkout_url)}">Continuar pagamento</a>` : pend[0].gateway === "whatsapp" ? ` <a class="btn btn-sm btn-primary" href="${esc(linkWhatsAppPagamento(s.plan?.name, dados.instance?.name) || "#")}" target="_blank" rel="noopener">Falar no WhatsApp</a>` : ""}</p>` : ""}
+      ${pend.length ? `<p class="bot-warning">Pagamento ${pend[0].is_test ? "de teste " : ""}aguardando confirmação (${dinheiro(pend[0].amount)}).${pend[0].checkout_url ? ` <a class="btn btn-sm btn-primary" href="${esc(pend[0].checkout_url)}">Continuar pagamento</a>` : (pend[0].gateway === "manual" && !pend[0].is_test) ? ` <a class="btn btn-sm btn-primary" href="${esc(linkWhatsAppPagamento(s.plan?.name, dados.instance?.name) || "#")}" target="_blank" rel="noopener">Falar no WhatsApp</a>` : ""}</p>` : ""}
       ${aberta ? `<div class="admin-actions">
         ${s.status !== "pending_payment" && !pend.length ? '<button class="btn btn-sm btn-primary" type="button" data-acao="renew">Renovar</button>' : ""}
         <select id="botTrocaPlano" aria-label="Trocar plano">${opcoes}</select><button class="btn btn-sm" type="button" data-acao="change-plan">Trocar plano</button>

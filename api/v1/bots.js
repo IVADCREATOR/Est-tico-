@@ -218,7 +218,7 @@ async function novaCobranca(sub, plano, kind, userId, gw, nomeInstancia) {
   await upd('bot_payments', `subscription_id=eq.${enc(sub.id)}&status=eq.pending`, { status: 'canceled' }, { returning: false });
   const pay = (await ins('bot_payments', [{ subscription_id: sub.id, user_id: userId, plan_id: plano.id, kind, amount: plano.price, currency: plano.currency,
     period_days: plano.duration_days, status: 'pending', is_test: gw.is_test, gateway: gw.gateway, expires_at: new Date(Date.now() + 7 * 86400000).toISOString() }]))[0];
-  if (gw.gateway === 'whatsapp') {
+  if (!gw.is_test && gw.gateway === 'manual') {
     pay.whatsapp_url = linkWhatsAppPlano(SUPPORT_WHATSAPP, plano, nomeInstancia);
   }
   await evento({ instance_id: sub.instance_id, user_id: userId, subscription_id: sub.id, kind: 'payment', event: 'payment_created', actor_type: 'user', actor_id: userId,
