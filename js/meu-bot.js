@@ -152,6 +152,7 @@
       ${dados.instance && sub ? painelAssinatura() : ""}
       ${semAssinatura ? painelPlanos() : ""}
       ${dados.instance && !semAssinatura ? painelConexao() : ""}
+      ${dados.instance?.phone_masked ? painelAutodisparo() : ""}
       ${dados.instance ? painelGrupos() : ""}
       ${dados.instance ? painelEventos() : ""}`;
     ligar();
@@ -266,11 +267,17 @@
     </section>`;
   }
 
+  const ROTULO_GRUPO_CMD = { admin: "Comandos de administração", member: "Comandos de membros", rpg: "Comandos de RPG", vip: "Comandos VIP" };
   function painelGrupos() {
     const grupos = dados.groups || [];
     const cat = dados.catalog || [];
     const catDivulgacao = cat.find((c) => c.key === "feature:divulgacao_automatica");
-    const catResto = cat.filter((c) => c.key !== "feature:divulgacao_automatica");
+    // Funções gerais (features/category) primeiro, comandos individuais agrupados por categoria depois.
+    const catFeatures = cat.filter((c) => c.key !== "feature:divulgacao_automatica" && !c.key.startsWith("cmd:"));
+    const catComandos = cat.filter((c) => c.key.startsWith("cmd:"));
+    const gruposComando = {};
+    for (const c of catComandos) (gruposComando[c.group || "outros"] ||= []).push(c);
+    const catResto = catFeatures; // mantém o nome usado mais abaixo (não fazer mais nada aqui)
     const corpo = grupos.length ? grupos.map((g) => {
       const sDiv = catDivulgacao ? g.settings[catDivulgacao.key] : null;
       const atualDiv = catDivulgacao ? (sDiv ? sDiv.enabled : (g.actual[catDivulgacao.key] ?? true)) : false;
@@ -289,16 +296,68 @@
         </div>` : ""}
         <div class="settings-list">${catResto.map((c) => {
           const s = g.settings[c.key];
-          const atual = s ? s.enabled : (g.actual[c.key] ?? (c.key.startsWith("category:") || c.key === "feature:respostas_automaticas"));
+          // cmd:* e category:* não têm "estado real" reportado pelo bot (g.actual só
+          // tem as features do ADAPTADOR) — o padrão deles é sempre ligado até alguém
+          // desligar pelo painel, então sem registro em bot_group_commands o toggle
+          // precisa nascer marcado, senão parece desligado sem estar.
+          const atual = s ? s.enabled : (g.actual[c.key] ?? (c.key.startsWith("category:") || c.key.startsWith("cmd:") || c.key === "feature:respostas_automaticas"));
           return `<div class="setting-row"><div><strong>${esc(c.label)}</strong><p>${esc(c.how)}${s ? ` <small class="admin-muted">— alterado por ${s.by === "admin" ? "administração" : "você"} em ${fmt(s.at)}${s.pending ? " · aplicando…" : ""}</small>` : ""}</p></div>
             <label class="switch"><input type="checkbox" data-grupo="${esc(g.ref)}" data-chave="${esc(c.key)}" ${atual ? "checked" : ""} aria-label="${esc(c.label)}"><span></span></label></div>`;
         }).join("")}</div>
-        <form class="admin-toolbar bot-cmd" data-cmd-grupo="${esc(g.ref)}"><input placeholder="Desligar um comando específico (ex.: ban)" maxlength="40" autocapitalize="none"><button class="btn btn-sm" type="submit">Desligar comando</button></form>
-        ${Object.entries(g.settings).filter(([k]) => k.startsWith("cmd:")).map(([k, s]) => `<span class="chip-static">${esc(k.slice(4))}: ${s.enabled ? "ligado" : "desligado"} <button class="text-link" type="button" data-grupo="${esc(g.ref)}" data-chave-toggle="${esc(k)}" data-valor="${s.enabled ? "0" : "1"}">${s.enabled ? "desligar" : "religar"}</button></span>`).join(" ")}
+        <details class="bot-group">
+          <summary>Comandos individuais deste grupo (${catComandos.length})</summary>
+          ${Object.entries(gruposComando).map(([grp, itens]) => `
+            <p class="admin-muted" style="margin:14px 0 2px;font-weight:600">${esc(ROTULO_GRUPO_CMD[grp] || grp)}</p>
+            <div class="settings-list">${itens.map((c) => {
+              const s = g.settings[c.key];
+              const atual = s ? s.enabled : (g.actual[c.key] ?? true);
+              const nome = c.key.slice(4);
+              return `<div class="setting-row"><div><strong>${esc(nome)}</strong><p>${esc(c.how)}${s ? ` <small class="admin-muted">— ${s.pending ? "aplicando…" : `alterado em ${fmt(s.at)}`}</small>` : ""}</p></div>
+                <label class="switch"><input type="checkbox" data-grupo="${esc(g.ref)}" data-chave="${esc(c.key)}" ${atual ? "checked" : ""} aria-label="Comando ${esc(nome)}"><span></span></label></div>`;
+            }).join("")}</div>`).join("")}
+        </details>
+        <form class="admin-toolbar bot-cmd" data-cmd-grupo="${esc(g.ref)}"><input placeholder="Desligar um comando que não está na lista acima (digite o nome)" maxlength="40" autocapitalize="none"><button class="btn btn-sm" type="submit">Desligar comando</button></form>
+        ${Object.entries(g.settings).filter(([k]) => k.startsWith("cmd:") && !catComandos.some((c) => c.key === k)).map(([k, s]) => `<span class="chip-static">${esc(k.slice(4))}: ${s.enabled ? "ligado" : "desligado"} <button class="text-link" type="button" data-grupo="${esc(g.ref)}" data-chave-toggle="${esc(k)}" data-valor="${s.enabled ? "0" : "1"}">${s.enabled ? "desligar" : "religar"}</button></span>`).join(" ")}
         ${g.recent_events?.length ? `<ul class="bot-events">${g.recent_events.map((e) => `<li><small>${fmt(e.at)}</small> ${esc(e.event)}</li>`).join("")}</ul>` : ""}
       </details>`;
     }).join("") : Sora.emptyState("Nenhum grupo ainda.", "Os grupos aparecem aqui quando o bot estiver conectado e dentro deles. Só mostramos grupos em que o bot está.");
     return `<section class="panel"><div class="section-heading"><div><h2>Grupos e comandos</h2></div><span>Cada mudança vale só para o grupo escolhido e chega ao bot em até 1 minuto.</span></div>${corpo}</section>`;
+  }
+
+  /* ---------------- Autodisparo (aba separada, só aparece com número conectado) ---------------- */
+  function painelAutodisparo() {
+    const b = dados.broadcast || {};
+    const grupos = dados.groups || [];
+    const selecionados = new Set(b.group_refs || []);
+    return `<section class="panel" id="painelAutodisparo">
+      <div class="section-heading"><div><h2>Autodisparo</h2></div><span class="status-badge ${b.enabled ? "approved" : ""}">${b.enabled ? "Ativado" : "Desativado"}</span></div>
+      <p class="admin-muted">Configure aqui a mensagem de divulgação que o bot manda sozinho nos grupos, de tempos em tempos — sem precisar digitar os comandos de divulgação pelo WhatsApp. ${b.pending ? '<strong>Aplicando a última alteração…</strong>' : ""}</p>
+      ${b.stats?.last_dispatch_at || b.stats?.total_sent ? `<dl class="bot-info">
+        <div><dt>Último disparo</dt><dd>${fmt(b.stats.last_dispatch_at)}</dd></div>
+        <div><dt>Mensagens enviadas (total)</dt><dd>${b.stats.total_sent ?? 0}</dd></div>
+        <div><dt>Ciclos concluídos</dt><dd>${b.stats.total_cycles ?? 0}</dd></div>
+      </dl>` : ""}
+      <form id="formAutodisparo" class="admin-form" novalidate>
+        <div class="setting-row"><div><strong>Ligar autodisparo</strong><p>Enquanto estiver desligado, a configuração fica salva mas o bot não envia nada sozinho.</p></div><label class="switch" title="${b.enabled ? "Desativar" : "Ativar"} autodisparo"><input type="checkbox" id="adEnabled" ${b.enabled ? "checked" : ""} aria-label="Ligar autodisparo"><span></span></label></div>
+        <label>Mensagem de divulgação<textarea id="adMensagem" maxlength="1200" rows="5" placeholder="Ex.: Confira nossas promoções da semana! Chame no WhatsApp: (11) 90000-0000">${esc(b.message || "")}</textarea></label>
+        <div class="admin-form-grid">
+          <label>Imagem (link https, opcional)<input id="adImagem" type="url" maxlength="600" placeholder="https://..." value="${esc(b.image_url || "")}"></label>
+          <label>Repetir a cada (minutos)<input id="adIntervalo" type="number" min="5" max="1440" step="5" value="${b.interval_minutes || 60}"></label>
+        </div>
+        <label>Enviar para<select id="adModo">
+          <option value="todos" ${b.mode !== "selecionados" ? "selected" : ""}>Todos os grupos do bot</option>
+          <option value="selecionados" ${b.mode === "selecionados" ? "selected" : ""}>Só os grupos selecionados abaixo</option>
+        </select></label>
+        <div id="adGruposWrap" class="settings-list" style="${b.mode === "selecionados" ? "" : "display:none"}">
+          ${grupos.length ? grupos.map((g) => `<label class="setting-row"><div><strong>${esc(g.name || "Grupo sem nome")}</strong></div><input type="checkbox" class="ad-grupo" value="${esc(g.ref)}" ${selecionados.has(g.ref) ? "checked" : ""}></label>`).join("") : '<p class="admin-muted">Nenhum grupo ainda.</p>'}
+        </div>
+        <p class="field-hint">O intervalo mínimo é 5 minutos e o máximo é 24 horas (1440 min). Disparos muito rápidos aumentam o risco do número ser bloqueado pelo WhatsApp.</p>
+        <div class="admin-actions">
+          <button class="btn btn-primary" type="submit">Salvar</button>
+          <button class="btn btn-sm btn-ghost" type="button" id="adAgora">Disparar agora</button>
+        </div>
+      </form>
+    </section>`;
   }
 
   function painelEventos() {
@@ -377,6 +436,27 @@
         acao(f.querySelector("button"), "group-setting", { group_ref: f.dataset.cmdGrupo, key: `cmd:${nome}`, enabled: false });
       };
     });
+    const adModo = document.getElementById("adModo");
+    const adGruposWrap = document.getElementById("adGruposWrap");
+    if (adModo) adModo.onchange = () => { adGruposWrap.style.display = adModo.value === "selecionados" ? "" : "none"; };
+    const adAgora = document.getElementById("adAgora");
+    if (adAgora) adAgora.onclick = () => acao(adAgora, "broadcast-now", {});
+    const formAd = document.getElementById("formAutodisparo");
+    if (formAd) {
+      formAd.onsubmit = (e) => {
+        e.preventDefault();
+        const modo = document.getElementById("adModo").value;
+        const grupos = modo === "selecionados" ? [...formAd.querySelectorAll(".ad-grupo:checked")].map((c) => c.value) : [];
+        acao(formAd.querySelector('button[type="submit"]'), "broadcast-save", {
+          enabled: document.getElementById("adEnabled").checked,
+          message: document.getElementById("adMensagem").value.trim(),
+          image_url: document.getElementById("adImagem").value.trim() || undefined,
+          interval_minutes: Number(document.getElementById("adIntervalo").value) || 60,
+          mode: modo,
+          group_refs: grupos
+        });
+      };
+    }
     // Contagem do código de pareamento.
     clearInterval(contagem);
     const exp = area.querySelector("[data-expira]");

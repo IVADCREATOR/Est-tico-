@@ -306,7 +306,87 @@ export const CATALOGO = [
   { key: 'category:admin', label: 'Comandos de administração', como: 'Comandos de admin do grupo (ban, fechar grupo...).' },
   { key: 'category:member', label: 'Comandos de membros', como: 'Comandos que qualquer membro pode usar.' },
   { key: 'category:rpg', label: 'Comandos de RPG', como: 'Jogos e RPG.' },
-  { key: 'category:vip', label: 'Comandos VIP', como: 'Comandos exclusivos VIP.' }
+  { key: 'category:vip', label: 'Comandos VIP', como: 'Comandos exclusivos VIP.' },
+
+  // Comandos individuais (liga/desliga por comando, dentro de cada grupo).
+  // Gerado a partir dos arquivos reais de commands/admin,member,rpg,vip do
+  // bot-modelo — sempre que um comando novo for criado no bot, adicione uma
+  // linha aqui (key: 'cmd:<nome>') para ele aparecer no painel. Comandos da
+  // pasta "dono" não entram aqui: são por conta (não por grupo) e só o número
+  // configurado como dono pode usá-los pelo WhatsApp.
+  { key: 'cmd:abrirgp', label: 'abrirgp (Administração)', como: "Programa a abertura automática do grupo.", group: 'admin' },
+  { key: 'cmd:aceitarmbr', label: 'aceitarmbr (Administração)', como: "Configura o modo de aprovação de membros (0 = Desativado, 1 = Botões no PV, 2 = Automático).", group: 'admin' },
+  { key: 'cmd:addparceiro', label: 'addparceiro (Administração)', como: "Registra um novo parceiro no grupo com uma cota definida de links.", group: 'admin' },
+  { key: 'cmd:adv', label: 'adv (Administração)', como: "Aplica uma advertência ao usuário. No limite de 3/3, o membro é banido.", group: 'admin' },
+  { key: 'cmd:antifake', label: 'antifake (Administração)', como: "Ativa (1) ou desativa (0) a expulsão automática de números estrangeiros assim que entram no grupo.", group: 'admin' },
+  { key: 'cmd:antiflood', label: 'antiflood (Administração)', como: "Ativa (1) ou desativa (0) o sistema de anti-flood no grupo.", group: 'admin' },
+  { key: 'cmd:antilinkextremo', label: 'antilinkextremo (Administração)', como: "Ativa ou desativa o monitoramento severo de links externos no grupo.", group: 'admin' },
+  { key: 'cmd:antilinkhard', label: 'antilinkhard (Administração)', como: "Ativa (1) ou desativa (0) o sistema de AntiLink Hard no grupo.", group: 'admin' },
+  { key: 'cmd:antimember', label: 'antimember (Administração)', como: "Bloqueia membros comuns de usarem qualquer comando (1 = Ativado, 0 = Desativado).", group: 'admin' },
+  { key: 'cmd:antimencoes', label: 'antimencoes (Administração)', como: "Ativa (1) ou desativa (0) a proteção contra marcação fantasma e marcação em massa.", group: 'admin' },
+  { key: 'cmd:antipagamento', label: 'antipagamento (Administração)', como: "Ativa (1) ou desativa (0) a proteção contra mensagens de pagamento/cobrança no grupo.", group: 'admin' },
+  { key: 'cmd:aprovarmbr', label: 'aprovarmbr (Administração)', como: "Aprova o membro pendente através do comando enviado no privado.", group: 'admin' },
+  { key: 'cmd:b', label: 'b (Administração)', como: "Banimento rápido de um caractere (Atalho para o ban).", group: 'admin' },
+  { key: 'cmd:ban', label: 'ban (Administração)', como: "Bane um usuário do grupo ou protege os superiores de tentativas de banimento.", group: 'admin' },
+  { key: 'cmd:bemvindo', label: 'bemvindo (Administração)', como: "Ativa (1) ou desativa (0) as boas-vindas automáticas no grupo.", group: 'admin' },
+  { key: 'cmd:clean', label: 'clean (Administração)', como: "Limpa o chat do grupo enviando blocos de texto invisíveis.", group: 'admin' },
+  { key: 'cmd:fechargp', label: 'fechargp (Administração)', como: "Programa o fechamento automático do grupo.", group: 'admin' },
+  { key: 'cmd:infogrupo', label: 'infogrupo (Administração)', como: "Exibe informações detalhadas e o status das proteções do grupo.", group: 'admin' },
+  { key: 'cmd:kick', label: 'kick (Administração)', como: "Expulsa um usuário do grupo (Atalho para o ban).", group: 'admin' },
+  { key: 'cmd:legendabv', label: 'legendabv (Administração)', como: "Configura a legenda da mensagem de boas-vindas.", group: 'admin' },
+  { key: 'cmd:limpar', label: 'limpar (Administração)', como: "Limpa o chat do grupo enviando blocos de texto invisíveis.", group: 'admin' },
+  { key: 'cmd:linkgp', label: 'linkgp (Administração)', como: "Recupera e exibe o link de convite oficial do grupo.", group: 'admin' },
+  { key: 'cmd:listanegra', label: 'listanegra (Administração)', como: "Adiciona um usuário à lista negra para banimento instantâneo caso tente entrar.", group: 'admin' },
+  { key: 'cmd:listfake', label: 'listfake (Administração)', como: "Lista os números estrangeiros (fora do Brasil) que estão no grupo, sem remover ninguém.", group: 'admin' },
+  { key: 'cmd:listparceiro', label: 'listparceiro (Administração)', como: "Exibe todos os parceiros configurados no grupo e seus saldos de links.", group: 'admin' },
+  { key: 'cmd:menuadmin', label: 'menuadmin (Administração)', como: "Exibe a central tática de moderação e gerenciamento.", group: 'admin' },
+  { key: 'cmd:modoia', label: 'modoia (Administração)', como: "Ativa ou desativa o sistema de IA conversacional no grupo.", group: 'admin' },
+  { key: 'cmd:modoparceria', label: 'modoparceria (Administração)', como: "Ativa ou desativa o sistema de parcerias e controle de links no grupo.", group: 'admin' },
+  { key: 'cmd:modorpg', label: 'modorpg (Administração)', como: "Ativa ou desativa o ganho de XP e Pontos no grupo.", group: 'admin' },
+  { key: 'cmd:rmadvflood', label: 'rmadvflood (Administração)', como: "Remove as advertências de anti-flood acumuladas de um usuário.", group: 'admin' },
+  { key: 'cmd:rmlistanegra', label: 'rmlistanegra (Administração)', como: "Remove um usuário da lista negra do sistema.", group: 'admin' },
+  { key: 'cmd:rmmuteflood', label: 'rmmuteflood (Administração)', como: "Remove o mute de flood de um usuário do grupo.", group: 'admin' },
+  { key: 'cmd:rmparceiro', label: 'rmparceiro (Administração)', como: "Remove um usuário da lista de parceiros do grupo.", group: 'admin' },
+  { key: 'cmd:transcrever', label: 'transcrever (Administração)', como: "Ativa ou desativa a transcrição automática de áudios no grupo.", group: 'admin' },
+  { key: 'cmd:t', label: 't (Administração)', como: "Transcreve um áudio específico que foi marcado/marcado com resposta.", group: 'admin' },
+  { key: 'cmd:avaliacoes', label: 'avaliacoes (Membros)', como: "Exibe o relatorio de todas as notas e feedbacks deixados pelos usuarios.", group: 'member' },
+  { key: 'cmd:avaliar', label: 'avaliar (Membros)', como: "Permite ao cliente avaliar o sistema enviando uma nota de 1 a 5 e um comentario opcional.", group: 'member' },
+  { key: 'cmd:criador', label: 'criador (Membros)', como: "Exibe as informações de contato do criador do bot.", group: 'member' },
+  { key: 'cmd:deletarregistro', label: 'deletarregistro (Membros)', como: "Inicia o processo de exclusão do registro do usuário.", group: 'member' },
+  { key: 'cmd:dono', label: 'dono (Membros)', como: "Exibe as informações de contato do proprietário do bot.", group: 'member' },
+  { key: 'cmd:enviarlink', label: 'enviarlink (Membros)', como: "Envia o link do grupo do cliente direto para o privado do dono.", group: 'member' },
+  { key: 'cmd:figanime2', label: 'figanime2 (Membros)', como: "Envia um pacote de 10 figurinhas de anime no seu privado.", group: 'member' },
+  { key: 'cmd:figgojo', label: 'figgojo (Membros)', como: "Envia um pacote de 5 figurinhas estéticas de anime no seu privado.", group: 'member' },
+  { key: 'cmd:figobito', label: 'figobito (Membros)', como: "Envia um pacote de 5 figurinhas do Obito Uchiha no seu privado.", group: 'member' },
+  { key: 'cmd:figsukuna', label: 'figsukuna (Membros)', como: "Envia um pacote de 5 figurinhas do Ryomen Sukuna no seu privado.", group: 'member' },
+  { key: 'cmd:figurinhas', label: 'figurinhas (Membros)', como: "Envia uma quantidade de 1 a 15 figurinhas aleatórias no seu privado.", group: 'member' },
+  { key: 'cmd:lid', label: 'lid (Membros)', como: "Mostra o ID interno / LID do usuário atual.", group: 'member' },
+  { key: 'cmd:menucliente', label: 'menucliente (Membros)', como: "Exibe o menu de comandos acessíveis para os clientes registrados.", group: 'member' },
+  { key: 'cmd:menumember', label: 'menumember (Membros)', como: "Mostra o menu de comandos para membros de forma organizada com imagem de fundo.", group: 'member' },
+  { key: 'cmd:meulink', label: 'meulink (Membros)', como: "Exibe as estatisticas do seu link com verificacao de propriedade e registro.", group: 'member' },
+  { key: 'cmd:perfil', label: 'perfil (Membros)', como: "Exibe os dados cadastrais do usuário no sistema.", group: 'member' },
+  { key: 'cmd:perfilff', label: 'perfilff (Membros)', como: "Mostra o perfil detalhado de um jogador de Free Fire pelo ID.", group: 'member' },
+  { key: 'cmd:ping', label: 'ping (Membros)', como: "Exibe o ping e informações do sistema em uma imagem personalizada.", group: 'member' },
+  { key: 'cmd:play', label: 'play (Membros)', como: "Adiciona uma música para processamento e reprodução na fila global do sistema.", group: 'member' },
+  { key: 'cmd:registrar', label: 'registrar (Membros)', como: "Inicia o fluxo de cadastro para liberar os comandos do sistema.", group: 'member' },
+  { key: 'cmd:s', label: 's (Membros)', como: "Transforma imagens/vídeos em figurinhas com assinatura oficial.", group: 'member' },
+  { key: 'cmd:sorasaki', label: 'sorasaki (Membros)', como: "Faça perguntas livres para a assistente usando inteligência de busca da Wikipedia", group: 'member' },
+  { key: 'cmd:sorasakiia', label: 'sorasakiia (Membros)', como: "Faz uma pergunta para a Inteligência Artificial do Sorasaki System.", group: 'member' },
+  { key: 'cmd:temporizador', label: 'temporizador (Membros)', como: "Cria uma contagem regressiva visual que edita a mensagem em tempo real.", group: 'member' },
+  { key: 'cmd:teste', label: 'teste (Membros)', como: "Testa os formatos de botões atualizados para a engine Wileys.", group: 'member' },
+  { key: 'cmd:toimg', label: 'toimg (Membros)', como: "Converte uma figurinha de volta para imagem ou vídeo com log de erros.", group: 'member' },
+  { key: 'cmd:traduzir', label: 'traduzir (Membros)', como: "Traduz textos de forma isolada usando a estrutura direta do Google.", group: 'member' },
+  { key: 'cmd:comprar', label: 'comprar (RPG e economia)', como: "Compra itens na loja utilizando pontos.", group: 'rpg' },
+  { key: 'cmd:economia', label: 'economia (RPG e economia)', como: "Exibe o saldo e a carteira de pontos do usuário.", group: 'rpg' },
+  { key: 'cmd:loja', label: 'loja (RPG e economia)', como: "Exibe a loja oficial do Sorasaki System.", group: 'rpg' },
+  { key: 'cmd:menurpg', label: 'menurpg (RPG e economia)', como: "Exibe o menu de comandos do sistema de RPG e economia.", group: 'rpg' },
+  { key: 'cmd:rank', label: 'rank (RPG e economia)', como: "Exibe o Top 5 usuários com mais pontos no ecossistema.", group: 'rpg' },
+  { key: 'cmd:ausente', label: 'ausente (VIP)', como: "Define o status AFK de ausência do usuário VIP ou Dono.", group: 'vip' },
+  { key: 'cmd:desmute', label: 'desmute (VIP)', como: "Desmuta um usuário no grupo, permitindo que ele volte a enviar mensagens.", group: 'vip' },
+  { key: 'cmd:me', label: 'me (VIP)', como: "Mostra suas informações completas de perfil, RPG e status VIP.", group: 'vip' },
+  { key: 'cmd:menuvip', label: 'menuvip (VIP)', como: "Exibe os comandos exclusivos para membros VIP ou compradores da loja.", group: 'vip' },
+  { key: 'cmd:mute', label: 'mute (VIP)', como: "Silencia um usuário no grupo, fazendo com que o bot apague suas mensagens.", group: 'vip' },
+  { key: 'cmd:revelarvisu', label: 'revelarvisu (VIP)', como: "Revela mídias enviadas em modo de visualização única.", group: 'vip' }
 ];
 const CHAVES = new Set(CATALOGO.map((c) => c.key));
 export function chaveValida(key, comandosConhecidos = null) {
@@ -316,6 +396,62 @@ export function chaveValida(key, comandosConhecidos = null) {
   if (!m) return null;
   if (Array.isArray(comandosConhecidos) && comandosConhecidos.length && !comandosConhecidos.includes(m[1])) return null;
   return k;
+}
+
+/* ---------------------------------------------------------------------
+ * Autodisparo (disparo em massa configurado pelo dono, não mais só pelo
+ * WhatsApp). Uma linha por instância em bot_broadcast_settings; o worker
+ * lê o "desejado" (maior version) e confirma o que o bot já aplicou
+ * (applied_version), do mesmo jeito que já existe para bot_group_commands.
+ * ------------------------------------------------------------------- */
+export const BROADCAST_LIMITES = {
+  intervaloMin: 5,      // não deixamos disparar mais rápido que isso (evita ban do número)
+  intervaloMax: 1440,   // 24h
+  mensagemMax: 1200,
+  gruposMax: 300
+};
+// Não lança erro (este arquivo não tem a classe Erro, que é local a cada
+// rota) — devolve { erro: 'mensagem' } ou os dados já limpos, no mesmo
+// espírito de normalizarTelefone()/nomeValido() aqui do arquivo. Quem chama
+// (api/v1/bots.js) decide o status HTTP.
+// limparTexto() esconde sequências longas de dígitos e tokens — ótimo para
+// texto que vai para logs/auditoria, péssimo para uma mensagem de divulgação
+// que o próprio dono escreveu de propósito com preço/telefone/link. Aqui só
+// tiramos caracteres de controle e limitamos o tamanho.
+function textoDivulgacao(v, max) {
+  return String(v ?? '').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '').trim().slice(0, max);
+}
+export function validarBroadcast(body) {
+  const enabled = body?.enabled === true;
+  const mensagem = textoDivulgacao(body?.message ?? '', BROADCAST_LIMITES.mensagemMax);
+  if (enabled && !mensagem) return { erro: 'Escreva a mensagem que vai ser divulgada.' };
+  const intervalo = inteiro(body?.interval_minutes, BROADCAST_LIMITES.intervaloMin, BROADCAST_LIMITES.intervaloMax, null);
+  if (enabled && !intervalo) return { erro: `O intervalo precisa estar entre ${BROADCAST_LIMITES.intervaloMin} minutos e ${BROADCAST_LIMITES.intervaloMax / 60} horas.` };
+  const modo = ['todos', 'selecionados'].includes(body?.mode) ? body.mode : 'todos';
+  let imagem = null;
+  if (body?.image_url) {
+    const u = String(body.image_url).trim();
+    if (!/^https:\/\/.{4,600}$/i.test(u)) return { erro: 'A imagem precisa ser um link https válido.' };
+    imagem = u;
+  }
+  let refs = [];
+  if (modo === 'selecionados') {
+    refs = Array.isArray(body?.group_refs) ? body.group_refs.filter((r) => /^G-[0-9A-F]{10}$/.test(String(r))).slice(0, BROADCAST_LIMITES.gruposMax) : [];
+    if (enabled && !refs.length) return { erro: 'Escolha pelo menos um grupo, ou mude o modo para "todos os grupos".' };
+  }
+  return { enabled, message: mensagem, interval_minutes: intervalo || 60, mode: modo, image_url: imagem, group_refs: refs };
+}
+export function broadcastPublico(row, grupos = []) {
+  if (!row) return { enabled: false, message: '', interval_minutes: 60, mode: 'todos', image_url: null, group_refs: [],
+    pending: false, stats: { total_sent: 0, total_cycles: 0, last_dispatch_at: null } };
+  const refsAtivos = new Set((grupos || []).map((g) => g.ref));
+  return {
+    enabled: !!row.enabled, message: row.message || '', interval_minutes: row.interval_minutes || 60, mode: row.mode || 'todos',
+    image_url: row.image_url || null,
+    group_refs: Array.isArray(row.group_refs) ? row.group_refs.filter((r) => refsAtivos.has(r)) : [],
+    pending: Number(row.applied_version || 0) < Number(row.version || 0),
+    stats: { total_sent: Number(row.total_sent || 0), total_cycles: Number(row.total_cycles || 0), last_dispatch_at: row.last_dispatch_at || null }
+  };
 }
 
 /* ---------------------------------------------------------------------

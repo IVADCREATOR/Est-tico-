@@ -48,7 +48,8 @@ export default async function handler(req, res) {
     const worker = await autenticar(req);
     const body = readJsonBody(req);
     if (!body || typeof body !== 'object' || Array.isArray(body)) throw new Erro(400, 'Corpo inválido.');
-    const rotas = { heartbeat, 'job-result': resultadoTarefa, 'groups-sync': sincronizarGrupos, 'settings-ack': confirmarConfig, logs: receberLogs, event: receberEvento };
+    const rotas = { heartbeat, 'job-result': resultadoTarefa, 'groups-sync': sincronizarGrupos, 'settings-ack': confirmarConfig,
+      'broadcast-sync': sincronizarBroadcast, 'broadcast-ack': confirmarBroadcast, logs: receberLogs, event: receberEvento };
     const fn = rotas[type];
     if (!fn) throw new Erro(404, 'Ação desconhecida.');
     return sendJson(res, 200, { ok: true, ...(await fn(req, worker, body)) });
@@ -279,6 +280,12 @@ async function resultadoTarefa(req, worker, body) {
     await upd('bot_instances', `id=eq.${job.instance_id}`, { op_status: 'disconnected', phone_masked: null, phone_hash: null, connected_since: null }, { returning: false });
     await evento({ instance_id: job.instance_id, user_id: inst?.owner_id, kind: 'connection', event: 'disconnected', actor_type: 'worker', message: 'Sessão do WhatsApp encerrada no servidor.' });
   }
+  if (job.type === 'broadcast_now') {
+    const s = statsValidos(r.stats);
+    if (s) { try { await upd('bot_broadcast_settings', `instance_id=eq.${job.instance_id}`, s, { returning: false }); } catch (e) { if (!tabelaAusente(e)) throw e; } }
+    await evento({ instance_id: job.instance_id, user_id: inst?.owner_id, kind: 'broadcast', event: st === 'done' ? 'broadcast_sent' : 'broadcast_failed',
+      severity: st === 'done' ? 'info' : 'warning', actor_type: 'worker', message: resumo.message || (st === 'done' ? 'Disparo concluído.' : 'Falha ao disparar.') });
+  }
   // O código de pareamento nunca é guardado no resultado da tarefa.
   await upd('bot_worker_jobs', `id=eq.${job.id}`, { status: st, finished_at: agoraIso(), result: resumo }, { returning: false });
   return { message: 'Registrado.' };
@@ -343,6 +350,49 @@ async function confirmarConfig(req, worker, body) {
     n += r?.length || 0;
   }
   return { updated: n };
+}
+
+/* ===================================================================== *
+ * Autodisparo: o worker chama "broadcast-sync" de tempos em tempos (ex.:
+ * junto com o heartbeat, ou no intervalo configurado) pra saber a config
+ * atual e, no mesmo passo, entregar as métricas mais recentes que leu do
+ * storage/autoresponder.json do bot. Confirma que aplicou com "broadcast-ack".
+ * ===================================================================== */
+function statsValidos(s) {
+  if (!s || typeof s !== 'object') return null;
+  const out = {};
+  if (Number.isInteger(s.total_sent) && s.total_sent >= 0) out.total_sent = Math.min(s.total_sent, 10_000_000);
+  if (Number.isInteger(s.total_cycles) && s.total_cycles >= 0) out.total_cycles = Math.min(s.total_cycles, 1_000_000);
+  const at = s.last_dispatch_at ? dataValida(s.last_dispatch_at) : null;
+  if (at) out.last_dispatch_at = at;
+  return Object.keys(out).length ? out : null;
+}
+async function sincronizarBroadcast(req, worker, body) {
+  const inst = await instanciaDoWorker(worker, body.instance_id);
+  const stats = statsValidos(body.stats);
+  if (stats) {
+    try { await upd('bot_broadcast_settings', `instance_id=eq.${inst.id}`, stats, { returning: false }); } catch (e) { if (!tabelaAusente(e)) throw e; }
+  }
+  const grupos = await sel('bot_groups', `instance_id=eq.${inst.id}&status=eq.active&select=jid,ref`);
+  const jidPorRef = new Map(grupos.map((g) => [g.ref, g.jid]));
+  const cfg = await one('bot_broadcast_settings', `instance_id=eq.${inst.id}&select=*`);
+  if (!cfg) return { settings: null };
+  const jids = (Array.isArray(cfg.group_refs) ? cfg.group_refs : []).map((r) => jidPorRef.get(r)).filter(Boolean);
+  return {
+    settings: {
+      enabled: !!cfg.enabled, message: cfg.message || '', interval_minutes: cfg.interval_minutes || 60,
+      mode: cfg.mode || 'todos', image_url: cfg.image_url || null,
+      group_jids: cfg.mode === 'selecionados' ? jids : [],
+      version: Number(cfg.version || 0)
+    }
+  };
+}
+async function confirmarBroadcast(req, worker, body) {
+  const inst = await instanciaDoWorker(worker, body.instance_id);
+  const v = Number(body.version);
+  if (!Number.isInteger(v) || v < 1) throw new Erro(400, 'Versão inválida.');
+  const r = await upd('bot_broadcast_settings', `instance_id=eq.${inst.id}&version=gte.${v}&applied_version=lt.${v}`, { applied_version: v, applied_at: agoraIso() });
+  return { updated: r?.length || 0 };
 }
 
 async function receberLogs(req, worker, body) {

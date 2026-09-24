@@ -17,7 +17,7 @@ import {
   gatewayDisponivel, MSG_PAGAMENTO_TESTE, linkWhatsAppPlano, hmac, normalizarTelefone, mascararTelefone, limparTexto, nomeValido, uuidValido,
   contextoPedido, statusExibido, instanciaPublica, assinaturaPublica, pagamentoPublico, eventoPublico, planoPublico,
   CATALOGO, chaveValida, evento, auditar, gerarTokenWorker, atribuirWorker, criarTarefa, despacharConexao, localExecucao,
-  inteiro, WORKER_TIMEOUT_MS
+  inteiro, WORKER_TIMEOUT_MS, validarBroadcast, broadcastPublico
 } from '../_bots.js';
 
 // Número de WhatsApp da equipe pra fechar a contratação dos planos de bot
@@ -75,7 +75,8 @@ async function rotaUsuario(req, res, type) {
   const acoes = {
     subscribe: acaoAssinar, 'change-plan': acaoTrocarPlano, renew: acaoRenovar, cancel: acaoCancelar, resume: acaoRetomar,
     connect: acaoConectar, 'cancel-connection': acaoCancelarConexao, disconnect: acaoDesconectar, restart: acaoReiniciar,
-    rename: acaoRenomear, 'group-setting': acaoConfigGrupo
+    rename: acaoRenomear, 'group-setting': acaoConfigGrupo,
+    'broadcast-save': acaoBroadcastSalvar, 'broadcast-now': acaoBroadcastAgora
   };
   const fn = acoes[type];
   if (!fn) throw new Erro(404, 'Não achei essa ação por aqui.');
@@ -139,10 +140,11 @@ async function montarStatus(user, cfg) {
       if (code) { conexao.pairing_code = code.code; conexao.code_expires_at = code.expires_at; }
     }
   }
-  const [pagamentos, eventos, grupos] = await Promise.all([
+  const [pagamentos, eventos, grupos, broadcastRow] = await Promise.all([
     sub ? sel('bot_payments', `subscription_id=eq.${enc(sub.id)}&select=*&order=created_at.desc&limit=5`) : [],
     sel('bot_events', `user_id=eq.${enc(user.id)}&visibility=eq.owner&instance_id=eq.${enc(inst.id)}&select=id,kind,event,severity,actor_type,message,group_id,created_at&order=created_at.desc&limit=25`),
-    gruposDaInstancia(inst.id)
+    gruposDaInstancia(inst.id),
+    one('bot_broadcast_settings', `instance_id=eq.${enc(inst.id)}&select=*`)
   ]);
   return {
     ...base,
@@ -151,7 +153,8 @@ async function montarStatus(user, cfg) {
     connection: conexao,
     payments: pagamentos.map(pagamentoPublico),
     events: eventos.map(eventoPublico),
-    groups: grupos
+    groups: grupos,
+    broadcast: broadcastPublico(broadcastRow, grupos)
   };
 }
 
@@ -393,6 +396,39 @@ async function salvarConfigGrupo({ inst, ref, groupId, key, enabled, actor, acto
     await ins('bot_group_commands', [{ group_id: grupo.id, instance_id: inst.id, key: k, enabled, version: 1, updated_by: actor, updated_by_type: actorType }], { returning: false });
   }
   return { message: enabled ? 'Ligado. O bot aplica em até 1 minuto.' : 'Desligado. O bot aplica em até 1 minuto.' };
+}
+
+/* ---------- autodisparo (aba separada, dono configura pelo site) ---------- */
+// Mesma lógica de versão de bot_group_commands: version sobe a cada salvar,
+// o worker aplica no bot e devolve applied_version pelo endpoint
+// /api/v1/worker?type=confirm-broadcast (ver worker.js).
+async function acaoBroadcastSalvar({ user, body }) {
+  if (!rateLimit(`bots-broadcast:${user.id}`, 20, 60_000)) throw new Erro(429, 'Muitas alterações seguidas. Aguarde um instante.');
+  const inst = await minhaInstancia(user, body);
+  if (!inst) throw new Erro(404, 'Bot não encontrado.');
+  const v = validarBroadcast(body);
+  if (v.erro) throw new Erro(400, v.erro);
+  const atual = await one('bot_broadcast_settings', `instance_id=eq.${enc(inst.id)}&select=id,version`);
+  const patch = { enabled: v.enabled, message: v.message, interval_minutes: v.interval_minutes, mode: v.mode, image_url: v.image_url, group_refs: v.group_refs, updated_by: user.id, updated_by_type: 'user' };
+  if (atual) await upd('bot_broadcast_settings', `id=eq.${atual.id}`, { ...patch, version: Number(atual.version) + 1, updated_at: agoraIso() }, { returning: false });
+  else await ins('bot_broadcast_settings', [{ instance_id: inst.id, ...patch, version: 1, applied_version: 0 }], { returning: false });
+  await evento({ instance_id: inst.id, user_id: user.id, kind: 'broadcast', event: v.enabled ? 'broadcast_enabled' : 'broadcast_updated', actor_type: 'user', actor_id: user.id,
+    message: v.enabled ? `Autodisparo ligado (a cada ${v.interval_minutes} min).` : 'Configuração de autodisparo salva.' });
+  return { message: 'Salvo. O bot aplica em até 1 minuto.' };
+}
+
+// "Disparar agora": entra na mesma fila de tarefas do worker (restart/disconnect/pair),
+// o bot chama forcarDisparoExterno() da config atual assim que pegar a tarefa.
+async function acaoBroadcastAgora({ user, body }) {
+  if (!rateLimit(`bots-broadcast-now:${user.id}`, 5, 10 * 60_000)) throw new Erro(429, 'Aguarde alguns minutos antes de disparar de novo.');
+  const inst = await minhaInstancia(user, body);
+  if (!inst) throw new Erro(404, 'Bot não encontrado.');
+  if (!inst.worker_id) throw new Erro(409, 'O bot ainda não está em um servidor.');
+  const cfg = await one('bot_broadcast_settings', `instance_id=eq.${enc(inst.id)}&select=enabled,message`);
+  if (!cfg || !cfg.message) throw new Erro(400, 'Configure a mensagem de divulgação antes de disparar.');
+  await criarTarefa({ workerId: inst.worker_id, instanceId: inst.id, type: 'broadcast_now', by: user.id, byType: 'user' });
+  await evento({ instance_id: inst.id, user_id: user.id, kind: 'broadcast', event: 'broadcast_now_requested', actor_type: 'user', actor_id: user.id, message: 'Disparo imediato pedido pelo dono.' });
+  return { message: 'Disparando agora. Acompanhe o resultado no histórico em instantes.' };
 }
 
 /* ===================================================================== *
