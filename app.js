@@ -408,7 +408,8 @@ const SORA_NAV = [
     ["/grupos", "Grupos", "Comunidades revisadas pela equipe"],
     ["/catalogo", "Catálogo", "Produtos e serviços"],
     ["/noticias", "Notícias", "Novidades e avisos"],
-    ["/recursos", "Recursos", "O que o bot faz no grupo"]
+    ["/recursos", "Recursos", "O que o bot faz no grupo"],
+    ["/documentacao", "Documentação", "Como o site, o bot e as vias funcionam"]
   ] },
   { grupo: "Sorasaki", itens: [
     ["/sobre", "Sobre", "O projeto e a proposta"],

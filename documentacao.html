@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Documentação — Sorasaki</title>
+<meta name="description" content="Como o Sorasaki funciona: o bot de WhatsApp, a hospedagem de bots, a vitrine de comunidades e as regras de intermediação de contas de jogos (vias e trocas).">
+<link rel="canonical" href="https://www.sorasakiplatform.store/documentacao">
+<meta name="theme-color" content="#0c0b10">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="preload" href="/fonts/bricolage-grotesque.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/geist.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/style.css?v=20260912c">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="/" aria-label="Sorasaki, página inicial"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.1 7.4 7.4 2.1-7.4 2.1L12 21.5l-2.1-7.4L2.5 12l7.4-2.1z" fill="currentColor"/></svg></span><span class="brand-name">SORASAKI</span></a>
+    <nav class="site-nav" aria-label="Principal"><a href="/grupos">Grupos</a><a href="/catalogo">Catálogo</a><a href="/noticias">Notícias</a><a href="/documentacao" aria-current="page">Documentação</a><a href="/suporte">Suporte</a></nav>
+    <div class="topbar-actions">
+      <button class="sora-login-trigger" type="button" aria-label="Entrar ou criar conta"><span class="login-avatar" aria-hidden="true"></span><span class="login-trigger-label">Entrar</span></button>
+      <button class="menu-trigger" type="button" aria-label="Abrir menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="conteudo">
+  <div class="page-head">
+    <span class="eyebrow">Central de ajuda</span>
+    <h1>Documentação</h1>
+    <p class="lead">Como o Sorasaki funciona, por dentro: o bot, a hospedagem, a vitrine de grupos e as regras de negociação de contas de jogos. Isto é explicativo — as regras que valem oficialmente estão nos <a class="text-link" href="/termos">Termos de Uso</a>.</p>
+  </div>
+
+  <div class="doc-tabs" role="tablist" aria-label="Seções da documentação">
+    <button class="chip active" type="button" data-tab="site" role="tab" aria-selected="true">Como funciona o site</button>
+    <button class="chip" type="button" data-tab="bots" role="tab" aria-selected="false">Bots</button>
+    <button class="chip" type="button" data-tab="hospedagem" role="tab" aria-selected="false">Hospedagem</button>
+    <button class="chip" type="button" data-tab="vias" role="tab" aria-selected="false">Vias de Free Fire</button>
+    <button class="chip" type="button" data-tab="trocas" role="tab" aria-selected="false">Trocas</button>
+    <button class="chip" type="button" data-tab="futuro" role="tab" aria-selected="false">Integrações e futuro</button>
+  </div>
+
+  <section class="section">
+
+    <!-- ===================== COMO FUNCIONA O SITE ===================== -->
+    <div class="doc-view legal active" data-view="site" role="tabpanel">
+      <h2>O que é o Sorasaki</h2>
+      <p>O Sorasaki reúne três coisas que, na maioria dos concorrentes, ficam espalhadas: um <strong>bot de moderação para WhatsApp</strong>, uma <strong>vitrine onde grupos se divulgam</strong> e um <strong>catálogo</strong> de produtos e planos. Tudo com login único.</p>
+
+      <h3>Conta e login</h3>
+      <p>Você entra com e-mail/senha ou com sua conta Google. Uma conta serve para tudo: hospedar seu bot, divulgar seu grupo na vitrine, avaliar comunidades e comprar no catálogo. O perfil (ícone no topo) reúne suas configurações, segurança (verificação em duas etapas) e histórico.</p>
+
+      <h3>A vitrine de grupos</h3>
+      <p>Administradores de grupos de WhatsApp cadastram seus grupos na página <a class="text-link" href="/grupos">Grupos</a> para aparecerem no diretório público. Visitantes navegam por categoria, veem avaliações de quem já participou e entram pelo link oficial cadastrado pelo admin. O Sorasaki faz uma checagem básica antes de publicar, mas quem administra e modera cada grupo é o próprio dono dele — o Sorasaki não participa das conversas internas.</p>
+
+      <h3>O catálogo</h3>
+      <p>A página <a class="text-link" href="/catalogo">Catálogo</a> lista produtos e planos (incluindo os planos de hospedagem de bot) com pagamento via Mercado Pago. Assim que o pagamento é confirmado, o que foi comprado é liberado automaticamente — plano de bot ativado, destaque de grupo aplicado, etc.</p>
+
+      <h3>Papéis dentro do sistema</h3>
+      <ul>
+        <li><strong>Usuário</strong> — qualquer pessoa com conta. Pode divulgar grupos, avaliar, comprar e contratar hospedagem de bot.</li>
+        <li><strong>Administrador de grupo</strong> — dono/admin de um grupo de WhatsApp divulgado na vitrine, ou dono de uma instância de bot contratada.</li>
+        <li><strong>ADM (mediador)</strong> — pessoa da equipe Sorasaki autorizada a intermediar negociações de contas de jogos (veja a aba <strong>Vias de Free Fire</strong>).</li>
+        <li><strong>Equipe/Admin do site</strong> — gerencia o catálogo, aprova destaques, modera denúncias e administra a infraestrutura dos bots pelo painel de controle interno.</li>
+      </ul>
+
+      <div class="legal-callout">Esta página explica o funcionamento na prática. As regras que valem oficialmente — o que é permitido, responsabilidades e limitações — estão nos <a class="text-link" href="/termos">Termos de Uso</a>.</div>
+    </div>
+
+    <!-- ===================== BOTS ===================== -->
+    <div class="doc-view legal" data-view="bots" role="tabpanel" hidden>
+      <h2>O bot de WhatsApp</h2>
+      <p>Cada cliente conecta o bot ao <strong>próprio número de WhatsApp</strong> — não é um número compartilhado. A conexão é feita por código de pareamento (o mesmo método do WhatsApp Web), sem precisar escanear QR Code.</p>
+
+      <h3>Categorias de comando</h3>
+      <ul>
+        <li><strong>Administração</strong> — moderação do grupo: banir, advertir, antifake, antilink, boas-vindas, fechamento/abertura programada, etc.</li>
+        <li><strong>Membros</strong> — comandos de uso geral: figurinhas, perfil, tradutor, player de música, assistente com IA.</li>
+        <li><strong>RPG</strong> — economia interna do grupo: pontos, loja, ranking.</li>
+        <li><strong>VIP</strong> — recursos extras para quem comprou um plano VIP ou item na loja.</li>
+      </ul>
+
+      <h3>Controlando o bot pelo site</h3>
+      <p>Depois de conectar o número, a página <strong>Meu bot</strong> mostra:</p>
+      <ul>
+        <li>Um interruptor para <strong>cada comando</strong>, em cada grupo — liga e desliga sem precisar digitar nada no WhatsApp.</li>
+        <li>A aba <strong>Autodisparo</strong>, separada dos comandos normais: mensagem, imagem, intervalo de envio e para quais grupos o bot divulga sozinho, periodicamente. Antes, isso só dava pra configurar digitando comando no WhatsApp — agora dá pra fazer tudo pelo site (o WhatsApp continua funcionando também, se preferir).</li>
+        <li>Reiniciar, desconectar ou trocar o número conectado.</li>
+      </ul>
+      <p>Alguns comandos continuam exclusivos do WhatsApp por serem de conta (não de grupo) — por exemplo, os comandos do "dono" do bot, que só o número configurado como dono pode usar.</p>
+
+      <h3>Disponibilidade</h3>
+      <p>O bot depende da plataforma do WhatsApp para funcionar. Instabilidades da Meta, do WhatsApp em si, ou manutenções programadas podem causar indisponibilidade temporária — isso está fora do nosso controle, mas monitoramos ativamente (veja mais em <a class="text-link" href="/termos">Termos de Uso, seção 9</a>).</p>
+    </div>
+
+    <!-- ===================== HOSPEDAGEM ===================== -->
+    <div class="doc-view legal" data-view="hospedagem" role="tabpanel" hidden>
+      <h2>Hospedagem de bot</h2>
+      <p>Contratar hospedagem significa que o Sorasaki mantém um processo rodando 24h para o seu número, em servidores próprios — você não precisa deixar celular ou computador ligado.</p>
+
+      <h3>Como funciona por trás</h3>
+      <ol>
+        <li>Você assina um plano no <a class="text-link" href="/catalogo">Catálogo</a>.</li>
+        <li>Na página <a class="text-link" href="/meu-bot">Meu bot</a>, informa o número e pede pareamento.</li>
+        <li>Um servidor ("worker") da infraestrutura Sorasaki inicia o processo do seu bot e devolve o código de pareamento.</li>
+        <li>Você digita o código no seu WhatsApp (Aparelhos conectados → Conectar com número de telefone) e o bot entra no ar.</li>
+        <li>Dali em diante, tudo que você muda no site (comandos, autodisparo, grupos) é aplicado automaticamente no seu bot, geralmente em menos de um minuto.</li>
+      </ol>
+
+      <h3>Planos e limites</h3>
+      <p>Cada plano define quantos grupos o bot pode administrar e por quanto tempo a assinatura fica ativa. Se a assinatura vencer, o bot é pausado (não apagado) até a renovação — os grupos e configurações continuam salvos.</p>
+
+      <h3>Segurança da sua sessão</h3>
+      <p>A sessão do WhatsApp (credenciais de login do bot) nunca passa pelo navegador nem fica visível para a equipe do site em texto simples — ela existe apenas dentro do servidor que roda o seu bot. Desconectar pelo site encerra essa sessão de verdade (você precisaria parear de novo para reconectar).</p>
+    </div>
+
+    <!-- ===================== VIAS DE FREE FIRE ===================== -->
+    <div class="doc-view legal" data-view="vias" role="tabpanel" hidden>
+      <h2>Vias de Free Fire (compra, venda e parcelamento)</h2>
+      <p>"Via" é o nome que a comunidade usa para uma negociação de conta de jogo intermediada pelo Sorasaki. Esta seção explica o passo a passo; as regras que valem oficialmente estão nos <a class="text-link" href="/termos">Termos de Uso, seção 7</a>.</p>
+
+      <div class="doc-callout-warn"><strong>Só é seguro com um ADM.</strong> Negociação combinada direto entre comprador e vendedor, sem passar por um ADM do Sorasaki, não tem nenhuma garantia — e as duas partes ficam sujeitas a banimento se isso for identificado.</div>
+
+      <h3>Como funciona a intermediação</h3>
+      <ol>
+        <li><strong>Pagamento.</strong> O comprador envia o valor combinado da conta + a taxa de mediação para o ADM responsável.</li>
+        <li><strong>Entrega da conta.</strong> Confirmado o pagamento, o vendedor passa os dados de acesso — ao ADM ou direto ao comprador, dependendo do tipo de login.</li>
+        <li><strong>Troca de dados.</strong> O comprador altera tudo que for necessário para ficar com controle total da conta (e-mail, senha, vínculos).</li>
+        <li><strong>Segurança durante o processo.</strong> O dinheiro fica retido com o ADM enquanto isso acontece — o vendedor não recebe na hora, exatamente para o comprador ter tempo de conferir e trocar os dados com segurança.</li>
+        <li><strong>Repasse.</strong> Só depois que tudo estiver confirmado, o ADM libera o valor para o vendedor.</li>
+      </ol>
+
+      <h3>Taxas de mediação</h3>
+      <table class="fee-table">
+        <thead><tr><th>Valor da negociação</th><th>Taxa</th></tr></thead>
+        <tbody>
+          <tr><td>R$ 0,01 a R$ 50,00</td><td>R$ 5,00</td></tr>
+          <tr><td>R$ 60,00 a R$ 89,00</td><td>R$ 10,00</td></tr>
+          <tr><td>R$ 90,00 a R$ 200,00</td><td>R$ 15,00</td></tr>
+          <tr><td>R$ 300,00 a R$ 600,00</td><td>R$ 20,00</td></tr>
+          <tr><td>R$ 700,00 a R$ 900,00</td><td>R$ 35,00</td></tr>
+          <tr><td>Acima de R$ 1.000,00</td><td>10% do valor total</td></tr>
+        </tbody>
+      </table>
+      <p>Valor fora dessas faixas, ou dúvida sobre qual taxa se aplica? Fale com um ADM antes de pagar qualquer coisa.</p>
+
+      <h3>Parcelamento via PIX</h3>
+      <ul>
+        <li>📦 O comprador recebe um <strong>e-mail secundário</strong> pra logar no jogo enquanto o parcelamento não termina. O login principal (o de verdade) só é entregue depois do pagamento total quitado.</li>
+        <li>💳 Para liberar o parcelamento, é preciso pagar uma <strong>entrada inicial</strong>. A partir daí, o comprador tem <strong>30 dias</strong> para quitar o valor total.</li>
+        <li>📌 Sobre o valor total parcelado incide <strong>10% de juros</strong>.</li>
+        <li>❌ Desistência ou cancelamento durante o parcelamento: <strong>sem reembolso</strong> do que já foi pago. A conta é deslogada de todos os aparelhos e volta a ser anunciada.</li>
+        <li>📝 Ao confirmar o parcelamento, o comprador está dizendo "sim, li e aceito essas condições" — e assume total responsabilidade por cumpri-las.</li>
+      </ul>
+
+      <h3>Prazos importantes</h3>
+      <ul>
+        <li><strong>30 minutos</strong> após o pagamento: janela para o comprador pedir cancelamento da via, antes do ADM começar a trocar os dados da conta.</li>
+        <li>Depois que o ADM já começou a alterar dados ou aplicar um método de segurança, só o <strong>valor da conta</strong> pode ser devolvido (não a taxa).</li>
+        <li><strong>15 dias</strong> após a negociação concluída: fim da responsabilidade do ADM e do Sorasaki sobre aquela via.</li>
+      </ul>
+
+      <h3>Métodos de segurança opcionais</h3>
+      <p>Para dificultar que o vendedor tente recuperar a conta depois de vendida, o comprador pode contratar:</p>
+      <ul>
+        <li>🔐 Inutilização permanente do código Garena — R$ 15,00</li>
+        <li>🔐 Inutilização de código Supercell — R$ 10,00</li>
+        <li>🔐 Banimento do e-mail Google associado — R$ 15,00</li>
+      </ul>
+      <p>Se o comprador desistir depois que um desses métodos já foi iniciado, o valor da via é cobrado do mesmo jeito — o processo já não tem volta.</p>
+      <p>O ADM só se responsabiliza por <strong>falha técnica do método contratado</strong>, não por arrependimento posterior.</p>
+
+      <h3>💎 Como precificar e anunciar sua conta</h3>
+      <p>O valor de uma conta não depende só da data de criação ou da quantidade de skins. Pesa também: armas e skins de arma (ATT), conjuntos raros, passes antigos, incubadoras, emotes e colecionáveis, itens de eventos antigos, e o quanto aquele item específico é procurado por outros jogadores.</p>
+      <p>Um bom anúncio vende mais rápido e por um valor mais justo. Algumas dicas:</p>
+      <ul>
+        <li><strong>Destaque o melhor primeiro.</strong> Não jogue uma lista enorme de itens — abra com o que realmente chama atenção (a skin rara, a arma procurada, a incubadora antiga).</li>
+        <li><strong>Preço visível.</strong> Coloque o valor de forma clara, e diga se aceita negociação ou troca.</li>
+        <li><strong>Boas imagens.</strong> Prints que mostrem de verdade o conteúdo da conta valem mais do que um textão.</li>
+        <li><strong>Apresentação organizada.</strong> Informação espalhada e sem ordem passa insegurança para quem está pensando em comprar.</li>
+        <li><strong>Preço coerente.</strong> Nem inflar o valor esperando alguém aceitar, nem vender por menos do que vale só pra ser rápido — mostre o que a conta tem e precifique de acordo.</li>
+      </ul>
+      <p>No fim das contas, o anúncio também vende a conta: duas contas parecidas podem ter resultado bem diferente dependendo de como foram anunciadas.</p>
+    </div>
+
+    <!-- ===================== TROCAS ===================== -->
+    <div class="doc-view legal" data-view="trocas" role="tabpanel" hidden>
+      <h2>Trocas de contas</h2>
+      <p>Trocar uma conta por outra (ou por itens) segue a mesma lógica da venda: só com intermediação de um ADM, pelos mesmos motivos de segurança (nenhuma das partes solta a própria conta antes de conferir a outra).</p>
+
+      <h3>Taxa de troca</h3>
+      <ul>
+        <li><strong>Troca padrão:</strong> R$ 30,00.</li>
+        <li><strong>Contas somadas valendo mais de R$ 1.000,00:</strong> 10% do valor total envolvido na troca.</li>
+      </ul>
+      <p>Valores acima disso, ou trocas com mais de duas contas envolvidas, devem ser consultadas com um ADM antes de combinar qualquer coisa — o valor final pode variar conforme a complexidade.</p>
+
+      <h3>Como funciona na prática</h3>
+      <ol>
+        <li>As duas partes enviam ao ADM os dados de acesso das contas que serão trocadas (ou o ADM orienta como proceder, conforme o tipo de login de cada uma).</li>
+        <li>Cada lado confere a conta que vai receber e faz as alterações necessárias.</li>
+        <li>Só depois que os dois confirmarem que está tudo certo, a troca é dada como concluída.</li>
+      </ol>
+      <p>As mesmas regras de prazo da aba <strong>Vias de Free Fire</strong> valem aqui: 30 minutos para desistir antes do início da troca, e 15 dias de responsabilidade do ADM após a conclusão.</p>
+    </div>
+
+    <!-- ===================== INTEGRAÇÕES E FUTURO ===================== -->
+    <div class="doc-view legal" data-view="futuro" role="tabpanel" hidden>
+      <h2>Sistemas do site e o que vem por aí</h2>
+      <p>Um retrato rápido de como as partes do Sorasaki conversam entre si hoje, e para onde a plataforma está indo.</p>
+
+      <h3>Como as peças se conectam hoje</h3>
+      <ul>
+        <li><strong>Site (Vercel) ↔ banco de dados (Supabase):</strong> contas, assinaturas, grupos divulgados, avaliações, catálogo e configurações do seu bot ficam guardados ali.</li>
+        <li><strong>Site ↔ bot:</strong> o site nunca fala diretamente com o WhatsApp. Ele grava a configuração desejada no banco; um "worker" (servidor que roda o processo do seu bot) busca essa configuração periodicamente e aplica de verdade — e reporta de volta status, grupos e estatísticas.</li>
+        <li><strong>Pagamentos (Mercado Pago):</strong> processa cartão/PIX de forma independente; o site só recebe a confirmação de que o pagamento aconteceu.</li>
+      </ul>
+
+      <h3>Em construção / próximos passos</h3>
+      <ul>
+        <li>Mais opções de servidor para hospedar bots (incluindo VPS próprios), para acompanhar o crescimento da base de clientes.</li>
+        <li>Histórico e comprovantes de vias e trocas diretamente na conta do usuário, sem depender só do print da conversa com o ADM.</li>
+        <li>Mais métricas no painel "Meu bot" (histórico de disparos do autodisparo, gráfico de atividade por grupo).</li>
+      </ul>
+      <p>Esta seção é informativa e pode mudar sem aviso prévio — ela não cria obrigações contratuais novas. O que vale oficialmente está sempre nos <a class="text-link" href="/termos">Termos de Uso</a>.</p>
+    </div>
+
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <div class="footer-brand"><a class="brand" href="/"><span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.5l2.1 7.4 7.4 2.1-7.4 2.1L12 21.5l-2.1-7.4L2.5 12l7.4-2.1z" fill="currentColor"/></svg></span><span class="brand-name">SORASAKI</span></a><p>Um bot que protege grupos de WhatsApp e uma vitrine para comunidades. Trocas, vendas e serviços.</p></div>
+    <div class="footer-col"><h4>Explorar</h4><a href="/grupos">Grupos</a><a href="/catalogo">Catálogo</a><a href="/noticias">Notícias</a><a href="/sobre">Sobre</a></div>
+    <div class="footer-col"><h4>Bot e ajuda</h4><a href="/documentacao">Documentação</a><a href="/suporte">Suporte</a><a href="/feedback">Avaliações e bugs</a><a href="/termos">Termos de Uso</a><a href="/privacidade">Privacidade</a></div>
+  </div>
+  <div class="footer-bottom"><span>© 2026 Sorasaki</span><span>Trocas · Vendas · Serviços</span></div>
+</footer>
+
+<script src="/config.js"></script>
+<script src="/vendor/supabase-js-2.116.0.js"></script>
+<script src="/app.js?v=20260912c"></script>
+<script src="/js/documentacao.js?v=20260926"></script>
+</body>
+</html>

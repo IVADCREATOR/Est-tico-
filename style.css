@@ -1418,6 +1418,17 @@ details.form-block > .form-block-body { display: grid; gap: 16px; }
 .admin-main { min-width: 0; display: grid; gap: 16px; }
 .admin-view { display: none; }
 .admin-view.active { display: grid; gap: 16px; animation: fadeIn var(--normal) var(--ease); }
+
+/* Documentação (/documentacao) — mesmo esqueleto simples de abas do admin, só que público. */
+.doc-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 30px; }
+.doc-view { display: none; }
+.doc-view.active { display: block; animation: fadeIn var(--normal) var(--ease); }
+.doc-callout-warn { background: rgba(255, 176, 32, .08); border: 1px solid rgba(255, 176, 32, .28); border-radius: 12px; padding: 16px 18px; margin: 18px 0 28px; font-size: 14.5px; }
+.doc-callout-warn strong { color: #ffb020; }
+.fee-table { width: 100%; border-collapse: collapse; margin: 14px 0 22px; font-size: 14.5px; }
+.fee-table th, .fee-table td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); color: var(--text-2); }
+.fee-table th { color: var(--faint); font-weight: 560; font-size: 12.5px; text-transform: uppercase; letter-spacing: .03em; }
+.fee-table td:last-child, .fee-table th:last-child { text-align: right; color: var(--text); font-weight: 560; }
 .admin-kpis { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
 .admin-kpi { display: grid; gap: 4px; padding: 16px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--glass), var(--surface-glass); box-shadow: var(--glass-edge); }
 .admin-kpi b { font-family: var(--font-display); font-size: 1.7rem; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
